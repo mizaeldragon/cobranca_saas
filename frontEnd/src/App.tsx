@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { BrowserRouter, NavLink, Route, Routes } from "react-router-dom";
-import { AuthPage } from "./pages/AuthPage";
+import { LandingPage } from "./pages/LandingPage";
+import { LoginPage } from "./pages/LoginPage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { CustomersPage } from "./pages/CustomersPage";
 import { ChargesPage } from "./pages/ChargesPage";
@@ -13,32 +14,66 @@ import { Button } from "./components/ui";
 
 export default function App() {
   const [auth, setAuthState] = useState<AuthPayload | null>(() => getAuth());
+  const [theme, setTheme] = useState<"light" | "dark">(() => {
+    const stored = localStorage.getItem("cobrancapro.theme");
+    return stored === "dark" ? "dark" : "light";
+  });
 
-  if (!auth) {
-    return (
-      <AuthPage
-        onAuth={(payload) => {
-          setAuth(payload);
-          setAuthState(payload);
-        }}
-      />
-    );
-  }
+  useEffect(() => {
+    document.body.classList.toggle("theme-dark", theme === "dark");
+    localStorage.setItem("cobrancapro.theme", theme);
+  }, [theme]);
 
   return (
     <BrowserRouter>
-      <AppShell
-        auth={auth}
-        onLogout={() => {
-          clearAuth();
-          setAuthState(null);
-        }}
-      />
+      {!auth ? (
+        <Routes>
+          <Route path="/" element={<LandingPage theme={theme} onToggleTheme={() => toggleTheme(setTheme)} />} />
+          <Route
+            path="/login"
+            element={
+              <LoginPage
+                theme={theme}
+                onToggleTheme={() => toggleTheme(setTheme)}
+                onAuth={(payload) => {
+                  setAuth(payload);
+                  setAuthState(payload);
+                }}
+              />
+            }
+          />
+          <Route path="*" element={<LandingPage theme={theme} onToggleTheme={() => toggleTheme(setTheme)} />} />
+        </Routes>
+      ) : (
+        <AppShell
+          auth={auth}
+          theme={theme}
+          onToggleTheme={() => toggleTheme(setTheme)}
+          onLogout={() => {
+            clearAuth();
+            setAuthState(null);
+          }}
+        />
+      )}
     </BrowserRouter>
   );
 }
 
-function AppShell({ auth, onLogout }: { auth: AuthPayload; onLogout: () => void }) {
+function toggleTheme(setTheme: React.Dispatch<React.SetStateAction<"light" | "dark">>) {
+  setTheme((current) => (current === "light" ? "dark" : "light"));
+}
+
+function AppShell({
+  auth,
+  theme,
+  onToggleTheme,
+  onLogout,
+}: {
+  auth: AuthPayload;
+  theme: "light" | "dark";
+  onToggleTheme: () => void;
+  onLogout: () => void;
+}) {
   const [company, setCompany] = useState<any>(null);
 
   useEffect(() => {
@@ -96,13 +131,19 @@ function AppShell({ auth, onLogout }: { auth: AuthPayload; onLogout: () => void 
         </aside>
 
         <main className="flex-1 space-y-6">
-          <header className="glass flex flex-wrap items-center justify-between gap-4 rounded-3xl px-6 py-4">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-ink-700">SaaS de cobranca</p>
-              <h1 className="font-serif text-2xl text-ink-900">Automacao financeira</h1>
-            </div>
-            <div className="flex items-center gap-2" />
-          </header>
+          <div className="flex items-center justify-end">
+            <button
+              className={`rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] ${
+                theme === "dark"
+                  ? "border-slate-600 bg-slate-900/70 text-slate-100"
+                  : "border-slate-300 bg-white/80 text-slate-800"
+              }`}
+              type="button"
+              onClick={onToggleTheme}
+            >
+              {theme === "light" ? "Modo escuro" : "Modo claro"}
+            </button>
+          </div>
 
           <Routes>
             <Route path="/" element={<DashboardPage />} />

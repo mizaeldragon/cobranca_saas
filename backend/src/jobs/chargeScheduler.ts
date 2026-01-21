@@ -1,4 +1,4 @@
-// src/jobs/chargeScheduler.ts
+﻿// src/jobs/chargeScheduler.ts
 import { query } from "../config/db";
 import { ChargesService } from "../modules/charges/charges.service";
 import { addInterval, toISODate } from "../utils/dates";
@@ -31,7 +31,7 @@ function startOfDayISO(d = new Date()): string {
 export async function markOverdueCharges(todayISO = startOfDayISO()) {
   if (!isISODate(todayISO)) todayISO = startOfDayISO();
 
-  // Marca como overdue tudo que venceu antes de hoje e ainda está pending
+  // Marca como overdue tudo que venceu antes de hoje e ainda estÃ¡ pending
   const rows = await query<{ id: string }>(
     `
     UPDATE charges
@@ -52,7 +52,7 @@ export async function runChargeSchedulerOnce(todayISO = startOfDayISO()) {
   // 1) Atualiza overdue primeiro
   const overdue = await markOverdueCharges(todayISO);
 
-  // 2) Pega assinaturas ativas que vencem hoje (ou já venceram e ainda não foram geradas)
+  // 2) Pega assinaturas ativas que vencem hoje (ou jÃ¡ venceram e ainda nÃ£o foram geradas)
   // Como usamos idempotency_key unique, pode buscar <= hoje tranquilamente
   const subs = await query<SubscriptionRow>(
     `
@@ -81,16 +81,23 @@ export async function runChargeSchedulerOnce(todayISO = startOfDayISO()) {
   let processed = 0;
 
   for (const s of subs) {
-    // Idempotência por assinatura+vencimento (não duplica cobrança)
-    const idempotencyKey = `sub:${s.id}:due:${s.next_due_date}`;
+    if (!isISODate(s.next_due_date)) {
+      console.warn("[scheduler] invalid next_due_date, skipping:", {
+        subscriptionId: s.id,
+        next_due_date: s.next_due_date,
+      });
+      continue;
+    }
 
-    // cria cobrança (se já existir, o ChargesService devolve a existente e não cria no provider)
+    // IdempotÇ¦ncia por assinatura+vencimento (nÇœo duplica cobranÇõa)    const idempotencyKey = `sub:${s.id}:due:${s.next_due_date}`;
+
+    // cria cobranÃ§a (se jÃ¡ existir, o ChargesService devolve a existente e nÃ£o cria no provider)
     await ChargesService.createManual(s.company_id, {
       customerId: s.customer_id,
       amountCents: s.amount_cents,
       dueDate: s.next_due_date,
       paymentMethod: s.payment_method,
-      description: `Recorrência (${s.interval}) - subscription ${s.id}`,
+      description: `RecorrÃªncia (${s.interval}) - subscription ${s.id}`,
       idempotencyKey,
       fineCents: s.fine_cents,
       interestBps: s.interest_bps,
@@ -98,8 +105,16 @@ export async function runChargeSchedulerOnce(todayISO = startOfDayISO()) {
       discountDaysBefore: s.discount_days_before,
     });
 
-    // Atualiza próxima data de vencimento da assinatura
+        // Atualiza prÇüxima data de vencimento da assinatura
     const next = addInterval(new Date(s.next_due_date + "T00:00:00"), s.interval);
+    if (Number.isNaN(next.getTime())) {
+      console.warn("[scheduler] invalid next date generated, skipping update:", {
+        subscriptionId: s.id,
+        next_due_date: s.next_due_date,
+        interval: s.interval,
+      });
+      continue;
+    }
     await query(`UPDATE subscriptions SET next_due_date = $1 WHERE id = $2`, [toISODate(next), s.id]);
 
     processed += 1;
@@ -110,13 +125,13 @@ export async function runChargeSchedulerOnce(todayISO = startOfDayISO()) {
 
 /**
  * MVP: roda no mesmo processo do server.
- * Produção: ideal rodar worker separado.
+ * ProduÃ§Ã£o: ideal rodar worker separado.
  */
 export function startChargeSchedulerLoop() {
   // a cada 5 minutos
   const intervalMs = 5 * 60 * 1000;
 
-  // roda logo ao iniciar também
+  // roda logo ao iniciar tambÃ©m
   runChargeSchedulerOnce().catch((e) => console.error("[scheduler] first run error:", e));
 
   setInterval(async () => {
@@ -130,3 +145,4 @@ export function startChargeSchedulerLoop() {
     }
   }, intervalMs);
 }
+

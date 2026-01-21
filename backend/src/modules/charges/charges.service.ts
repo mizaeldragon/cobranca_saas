@@ -77,6 +77,79 @@ export const ChargesService = {
     return { page, pageSize, total: Number(total.count), items: rows };
   },
 
+  async update(
+    companyId: string,
+    chargeId: string,
+    data: { amountCents?: number; dueDate?: string; paymentMethod?: "pix" | "boleto" | "card" }
+  ) {
+    const rows = await query(
+      `
+      UPDATE charges
+      SET
+        amount_cents = COALESCE($3, amount_cents),
+        due_date = COALESCE($4, due_date),
+        payment_method = COALESCE($5, payment_method)
+      WHERE company_id = $1 AND id = $2
+      RETURNING *
+      `,
+      [companyId, chargeId, data.amountCents ?? null, data.dueDate ?? null, data.paymentMethod ?? null]
+    );
+    if (!rows[0]) throw Object.assign(new Error("Charge not found"), { status: 404 });
+    return rows[0];
+  },
+
+  async cancel(companyId: string, chargeId: string) {
+    const ch = (await query<any>(
+      `
+      SELECT id, status, provider, provider_charge_id
+      FROM charges
+      WHERE company_id = $1 AND id = $2
+      LIMIT 1
+      `,
+      [companyId, chargeId]
+    ))[0];
+    if (!ch) throw Object.assign(new Error("Charge not found"), { status: 404 });
+    if (ch.status === "paid") throw Object.assign(new Error("Charge already paid"), { status: 409 });
+    if (ch.status === "canceled") return ch;
+
+    if (ch.provider !== "mock" && !ch.provider_charge_id) {
+      throw Object.assign(new Error("Provider charge id missing"), { status: 400 });
+    }
+
+    const company = (await query<CompanyRow>(
+      `SELECT bank_provider, provider_api_key FROM companies WHERE id = $1`,
+      [companyId]
+    ))[0];
+    if (!company) throw Object.assign(new Error("Company not found"), { status: 404 });
+    if (ch.provider !== "mock" && !company.provider_api_key) {
+      throw Object.assign(new Error("Company provider_api_key is missing"), { status: 400 });
+    }
+
+    const provider = getProvider(ch.provider as ProviderName);
+    await provider.cancelCharge({ apiKey: company.provider_api_key ?? undefined }, ch.provider_charge_id);
+
+    const updated = (await query<any>(
+      `
+      UPDATE charges
+      SET status = 'canceled'
+      WHERE id = $1
+      RETURNING *
+      `,
+      [ch.id]
+    ))[0];
+
+    await query(
+      `
+      UPDATE payments
+      SET status = 'failed', raw = COALESCE(raw,'{}'::jsonb) || $2::jsonb
+      WHERE company_id = $1 AND charge_id = $3
+      `,
+      [companyId, JSON.stringify({ canceledAt: new Date().toISOString() }), ch.id]
+    );
+
+    return updated;
+  },
+
   async createManual(companyId: string, data: any) {
     const company = (await query<CompanyRow>(
       `SELECT bank_provider, provider_api_key FROM companies WHERE id = $1`,

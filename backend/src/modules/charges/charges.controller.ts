@@ -14,6 +14,18 @@ export const ChargesController = {
     res.json(item);
   },
 
+  async update(req: Request, res: Response) {
+    const companyId = req.auth!.companyId;
+    const updated = await ChargesService.update(companyId, req.params.id, req.body);
+    res.json(updated);
+  },
+
+  async cancel(req: Request, res: Response) {
+    const companyId = req.auth!.companyId;
+    const updated = await ChargesService.cancel(companyId, req.params.id);
+    res.json(updated);
+  },
+
   async createManual(req: Request, res: Response) {
     const companyId = req.auth!.companyId;
     const created = await ChargesService.createManual(companyId, req.body);

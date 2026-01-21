@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
+import { createPortal } from "react-dom";
 import { api } from "../lib/api";
 import { Card, Input, Label, Button, SectionTitle } from "../components/ui";
 
@@ -6,7 +7,20 @@ export function CustomersPage() {
   const [items, setItems] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<any | null>(null);
   const [form, setForm] = useState({
+    name: "",
+    document: "",
+    email: "",
+    phone: "",
+    addressLine1: "",
+    city: "",
+    state: "",
+    zip: "",
+  });
+  const [editForm, setEditForm] = useState({
     name: "",
     document: "",
     email: "",
@@ -35,7 +49,7 @@ export function CustomersPage() {
     setLoading(true);
     setError(null);
     try {
-      await api.createCustomer({
+      const payload = {
         name: form.name,
         document: form.document,
         email: form.email || undefined,
@@ -44,12 +58,79 @@ export function CustomersPage() {
         city: form.city || undefined,
         state: form.state || undefined,
         zip: form.zip || undefined,
-      });
+      };
+      await api.createCustomer(payload);
       setForm({ name: "", document: "", email: "", phone: "", addressLine1: "", city: "", state: "", zip: "" });
       await load();
     } catch (err: any) {
       setError(err?.message ?? "Failed to create customer");
     } finally {
+      setLoading(false);
+    }
+  }
+
+  function startEdit(customer: any) {
+    setEditingId(customer.id);
+    setEditForm({
+      name: customer.name ?? "",
+      document: customer.document ?? "",
+      email: customer.email ?? "",
+      phone: customer.phone ?? "",
+      addressLine1: customer.address_line1 ?? "",
+      city: customer.city ?? "",
+      state: customer.state ?? "",
+      zip: customer.zip ?? "",
+    });
+    setEditOpen(true);
+  }
+
+  function resetEdit() {
+    setEditingId(null);
+    setEditOpen(false);
+    setEditForm({ name: "", document: "", email: "", phone: "", addressLine1: "", city: "", state: "", zip: "" });
+  }
+
+  async function handleUpdate(e: FormEvent) {
+    e.preventDefault();
+    if (!editingId) return;
+    setLoading(true);
+    setError(null);
+    try {
+      await api.updateCustomer(editingId, {
+        name: editForm.name,
+        document: editForm.document,
+        email: editForm.email || undefined,
+        phone: editForm.phone || undefined,
+        addressLine1: editForm.addressLine1 || undefined,
+        city: editForm.city || undefined,
+        state: editForm.state || undefined,
+        zip: editForm.zip || undefined,
+      });
+      resetEdit();
+      await load();
+    } catch (err: any) {
+      setError(err?.message ?? "Failed to update customer");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function startDelete(customer: any) {
+    setDeleteTarget(customer);
+  }
+
+  async function confirmDelete() {
+    if (!deleteTarget) return;
+    setLoading(true);
+    setError(null);
+    try {
+      await api.deleteCustomer(deleteTarget.id);
+      if (editingId === deleteTarget.id) resetEdit();
+      await load();
+    } catch (err: any) {
+      setError(err?.message ?? "Failed to delete customer");
+    } finally {
+      setDeleteTarget(null);
       setLoading(false);
     }
   }
@@ -117,12 +198,13 @@ export function CustomersPage() {
                 <th>Documento</th>
                 <th>Email</th>
                 <th>Telefone</th>
+                <th>Acoes</th>
               </tr>
             </thead>
             <tbody className="text-ink-900">
               {items.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="py-4 text-sm text-ink-700">
+                  <td colSpan={5} className="py-4 text-sm text-ink-700">
                     Nenhum cliente cadastrado.
                   </td>
                 </tr>
@@ -133,12 +215,127 @@ export function CustomersPage() {
                   <td>{customer.document}</td>
                   <td>{customer.email ?? "-"}</td>
                   <td>{customer.phone ?? "-"}</td>
+                  <td className="space-x-2">
+                    <button
+                      type="button"
+                      className="text-sm font-semibold text-ink-800"
+                      onClick={() => startEdit(customer)}
+                    >
+                      Editar
+                    </button>
+                    <button
+                      type="button"
+                      className="text-sm font-semibold text-ember-500"
+                      onClick={() => startDelete(customer)}
+                    >
+                      Excluir
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       </Card>
+
+      {typeof document !== "undefined" &&
+        editOpen &&
+        createPortal(
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-ink-900/60 px-4 backdrop-blur-sm">
+            <div className="relative w-full max-w-2xl animate-rise overflow-hidden rounded-[28px] border border-white/40 bg-white/90 p-6 shadow-[0_30px_80px_-40px_rgba(15,23,42,0.8)]">
+              <div className="absolute inset-0 bg-gradient-to-br from-white/70 via-white/30 to-tide-400/10" />
+              <div className="relative">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-serif text-2xl text-ink-900">Editar cliente</h3>
+                    <p className="text-sm text-ink-700">Atualize os dados do cliente selecionado.</p>
+                  </div>
+                  <button type="button" className="text-sm font-semibold text-ink-700" onClick={resetEdit}>
+                    Fechar
+                  </button>
+                </div>
+                <form className="mt-6 grid gap-4 md:grid-cols-2" onSubmit={handleUpdate}>
+                  <div className="space-y-2">
+                    <Label>Nome</Label>
+                    <Input value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Documento</Label>
+                    <Input
+                      value={editForm.document}
+                      onChange={(e) => setEditForm({ ...editForm, document: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Email</Label>
+                    <Input
+                      type="email"
+                      value={editForm.email}
+                      onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Telefone</Label>
+                    <Input value={editForm.phone} onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })} />
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <Label>Endereco</Label>
+                    <Input
+                      value={editForm.addressLine1}
+                      onChange={(e) => setEditForm({ ...editForm, addressLine1: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Cidade</Label>
+                    <Input value={editForm.city} onChange={(e) => setEditForm({ ...editForm, city: e.target.value })} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>UF</Label>
+                    <Input value={editForm.state} onChange={(e) => setEditForm({ ...editForm, state: e.target.value })} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>CEP</Label>
+                    <Input value={editForm.zip} onChange={(e) => setEditForm({ ...editForm, zip: e.target.value })} />
+                  </div>
+                  <div className="flex items-end gap-3">
+                    <Button type="submit" disabled={loading}>
+                      {loading ? "Salvando..." : "Salvar alteracoes"}
+                    </Button>
+                    <Button type="button" variant="ghost" onClick={resetEdit}>
+                      Cancelar
+                    </Button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
+
+      {typeof document !== "undefined" &&
+        deleteTarget &&
+        createPortal(
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-ink-900/60 px-4 backdrop-blur-sm">
+            <div className="relative w-full max-w-md animate-rise overflow-hidden rounded-[26px] border border-white/40 bg-white/90 p-6 shadow-[0_30px_80px_-40px_rgba(15,23,42,0.8)]">
+              <div className="absolute inset-0 bg-gradient-to-br from-white/70 via-white/30 to-ember-400/10" />
+              <div className="relative">
+                <h3 className="font-serif text-2xl text-ink-900">Excluir cliente</h3>
+                <p className="mt-2 text-sm text-ink-700">
+                  Tem certeza que deseja excluir <strong>{deleteTarget.name}</strong>? Essa acao nao pode ser desfeita.
+                </p>
+                <div className="mt-6 flex gap-3">
+                  <Button type="button" onClick={confirmDelete} disabled={loading}>
+                    {loading ? "Excluindo..." : "Sim, excluir"}
+                  </Button>
+                  <Button type="button" variant="ghost" onClick={() => setDeleteTarget(null)}>
+                    Cancelar
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
     </div>
   );
 }

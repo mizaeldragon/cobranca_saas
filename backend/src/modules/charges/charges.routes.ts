@@ -25,4 +25,18 @@ chargesRoutes.post(
   ChargesController.createManual
 );
 
+chargesRoutes.patch(
+  "/:id",
+  validateBody(
+    z.object({
+      amountCents: z.number().int().positive().optional(),
+      dueDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+      paymentMethod: z.enum(["pix", "boleto", "card"]).optional(),
+    })
+  ),
+  ChargesController.update
+);
+
+chargesRoutes.post("/:id/cancel", ChargesController.cancel);
+
 chargesRoutes.post("/:id/mark-paid", ChargesController.markPaid);

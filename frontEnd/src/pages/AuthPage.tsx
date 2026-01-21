@@ -1,7 +1,6 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { api } from "../lib/api";
 import type { AuthPayload } from "../lib/auth";
-import { Button, Card, Input, Label, Select } from "../components/ui";
 
 type AuthPageProps = {
   onAuth: (payload: AuthPayload) => void;
@@ -11,6 +10,7 @@ export function AuthPage({ onAuth }: AuthPageProps) {
   const [mode, setMode] = useState<"login" | "register">("login");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [theme, setTheme] = useState<"light" | "dark">("light");
 
   const [form, setForm] = useState({
     legalName: "",
@@ -20,6 +20,17 @@ export function AuthPage({ onAuth }: AuthPageProps) {
     bankProvider: "mock",
     providerApiKey: "",
   });
+
+  useEffect(() => {
+    const stored = localStorage.getItem("cobrancapro.theme");
+    if (stored === "dark") setTheme("dark");
+  }, []);
+
+  function toggleTheme() {
+    const next = theme === "light" ? "dark" : "light";
+    setTheme(next);
+    localStorage.setItem("cobrancapro.theme", next);
+  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -48,102 +59,118 @@ export function AuthPage({ onAuth }: AuthPageProps) {
   }
 
   return (
-    <div className="min-h-screen px-6 py-10">
-      <div className="mx-auto grid max-w-6xl gap-10 md:grid-cols-[1.1fr_0.9fr]">
-        <div className="space-y-6 animate-rise">
-          <div className="inline-flex items-center gap-3 rounded-full bg-ink-900 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-sand-50">
-            CobrancaPro
-          </div>
-          <h1 className="font-serif text-4xl text-ink-900 md:text-5xl">
-            Automate cobranças e mantenha sua receita previsivel.
-          </h1>
-          <p className="max-w-xl text-base text-ink-700">
-            Controle clientes, assinaturas e pagamentos com um painel claro. Conecte provedores como Asaas agora e
-            mantenha seu roadmap aberto para Cora e outros bancos.
+    <div className={`auth-shell ${theme === "dark" ? "theme-dark" : ""}`}>
+      <header className="auth-nav">
+        <div className="auth-brand">
+          <span className="auth-pill">CobrancaPro</span>
+          <span className="auth-slogan">SaaS de cobranca automatizada</span>
+        </div>
+        <button type="button" className="auth-toggle" onClick={toggleTheme}>
+          {theme === "light" ? "Modo escuro" : "Modo claro"}
+        </button>
+      </header>
+
+      <section className="auth-hero">
+        <div>
+          <h1>Automatize cobranças e mantenha sua receita previsível.</h1>
+          <p>
+            Um painel limpo para controlar clientes, assinaturas e pagamentos. Conecte provedores como Asaas agora e
+            deixe pronto para Cora e outros bancos.
           </p>
-          <div className="grid gap-4 sm:grid-cols-2">
-            {[
-              { title: "Cobrança recorrente", desc: "Gere faturas em lote e acompanhe status." },
-              { title: "Webhook seguro", desc: "Confirmacoes automaticas com segredo por empresa." },
-              { title: "Relatorios vivos", desc: "Visao diaria de pendencias e recebidos." },
-              { title: "Escala multi-tenant", desc: "Uma base para varios clientes SaaS." },
-            ].map((item) => (
-              <div key={item.title} className="glass rounded-3xl p-4">
-                <p className="text-sm font-semibold text-ink-900">{item.title}</p>
-                <p className="text-xs text-ink-700">{item.desc}</p>
-              </div>
-            ))}
+        </div>
+        <div className="auth-stats">
+          <div>
+            <strong>+20%</strong>
+            <span>recuperação de receita com cobrança recorrente</span>
+          </div>
+          <div>
+            <strong>100%</strong>
+            <span>automação por webhook seguro</span>
+          </div>
+          <div>
+            <strong>1 painel</strong>
+            <span>clientes, cobranças e relatórios</span>
           </div>
         </div>
+      </section>
 
-        <Card className="animate-rise">
-          <div className="flex items-center justify-between">
+      <section className="auth-highlights">
+        {[
+          { title: "Cobrança recorrente", desc: "Gere faturas em lote e acompanhe status." },
+          { title: "Pagamentos flexíveis", desc: "Boleto, Pix ou cartão em poucos cliques." },
+          { title: "Relatórios vivos", desc: "Visão diária de pendências e recebidos." },
+          { title: "Roadmap aberto", desc: "Integrações com Cora e outros bancos." },
+        ].map((item) => (
+          <article key={item.title}>
+            <h3>{item.title}</h3>
+            <p>{item.desc}</p>
+          </article>
+        ))}
+      </section>
+
+      <section className="auth-form">
+        <div className="auth-card">
+          <div className="auth-card-head">
             <div>
-              <h2 className="font-serif text-2xl text-ink-900">{mode === "login" ? "Entrar" : "Criar conta"}</h2>
-              <p className="text-sm text-ink-700">
-                {mode === "login" ? "Acesse o painel do SaaS." : "Ative sua empresa em minutos."}
-              </p>
+              <h2>{mode === "login" ? "Entrar" : "Criar conta"}</h2>
+              <p>{mode === "login" ? "Acesse o painel do SaaS." : "Ative sua empresa em minutos."}</p>
             </div>
-            <button
-              type="button"
-              className="text-xs font-semibold uppercase tracking-[0.2em] text-ink-700"
-              onClick={() => setMode(mode === "login" ? "register" : "login")}
-            >
+            <button type="button" onClick={() => setMode(mode === "login" ? "register" : "login")}>
               {mode === "login" ? "Criar conta" : "Entrar"}
             </button>
           </div>
 
-          <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
+          <form className="auth-fields" onSubmit={handleSubmit}>
             {mode === "register" && (
               <>
-                <div className="space-y-2">
-                  <Label>Empresa</Label>
-                  <Input
+                <label>
+                  Empresa
+                  <input
                     value={form.legalName}
                     onChange={(e) => setForm({ ...form, legalName: e.target.value })}
                     placeholder="Nome legal da empresa"
                     required
                   />
-                </div>
-                <div className="space-y-2">
-                  <Label>Documento</Label>
-                  <Input
+                </label>
+                <label>
+                  Documento
+                  <input
                     value={form.document}
                     onChange={(e) => setForm({ ...form, document: e.target.value })}
                     placeholder="CPF/CNPJ"
                     required
                   />
-                </div>
+                </label>
               </>
             )}
 
-            <div className="space-y-2">
-              <Label>Email</Label>
-              <Input
+            <label>
+              Email
+              <input
                 type="email"
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
                 placeholder="voce@empresa.com"
                 required
               />
-            </div>
+            </label>
 
-            <div className="space-y-2">
-              <Label>Senha</Label>
-              <Input
+            <label>
+              Senha
+              <input
                 type="password"
                 value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
                 placeholder="Minimo 6 caracteres"
                 required
               />
-            </div>
+            </label>
 
             {mode === "register" && (
               <>
-                <div className="space-y-2">
-                  <Label>Banco principal</Label>
-                  <Select
+                <label>
+                  Banco principal
+                  <select
                     value={form.bankProvider}
                     onChange={(e) => setForm({ ...form, bankProvider: e.target.value })}
                   >
@@ -152,27 +179,27 @@ export function AuthPage({ onAuth }: AuthPageProps) {
                     <option value="cora" disabled>
                       Cora (em breve)
                     </option>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>API Key do banco</Label>
-                  <Input
+                  </select>
+                </label>
+                <label>
+                  API Key do banco
+                  <input
                     value={form.providerApiKey}
                     onChange={(e) => setForm({ ...form, providerApiKey: e.target.value })}
                     placeholder="Opcional para mock"
                   />
-                </div>
+                </label>
               </>
             )}
 
-            {error && <p className="text-sm text-ember-500">{error}</p>}
+            {error && <p className="auth-error">{error}</p>}
 
-            <Button type="submit" className="w-full" disabled={loading}>
+            <button className="auth-submit" type="submit" disabled={loading}>
               {loading ? "Processando..." : mode === "login" ? "Entrar" : "Criar conta"}
-            </Button>
+            </button>
           </form>
-        </Card>
-      </div>
+        </div>
+      </section>
     </div>
   );
 }

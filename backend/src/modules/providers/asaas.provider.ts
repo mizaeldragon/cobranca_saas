@@ -1,4 +1,4 @@
-// src/modules/providers/asaas.provider.ts
+﻿// src/modules/providers/asaas.provider.ts
 
 import axios from "axios";
 import { env } from "../../config/env";
@@ -38,7 +38,7 @@ export const AsaasProvider: PaymentsProvider = {
     });
 
     // 1) cria cliente no Asaas (MVP)
-    // (depois podemos melhorar: buscar cliente existente por cpfCnpj pra não duplicar)
+    // (depois podemos melhorar: buscar cliente existente por cpfCnpj pra nÃ£o duplicar)
     const customerRes = await api.post("/customers", {
       name: input.customer.name,
       cpfCnpj: input.customer.document,
@@ -51,7 +51,7 @@ export const AsaasProvider: PaymentsProvider = {
       throw Object.assign(new Error("Asaas customer id missing"), { status: 502 });
     }
 
-    // 2) cria cobrança
+    // 2) cria cobranÃ§a
     const paymentRes = await api.post("/payments", {
       customer: customerId,
       billingType: mapBillingType(input.payment_method),
@@ -74,12 +74,37 @@ export const AsaasProvider: PaymentsProvider = {
     return {
       provider: "asaas",
       provider_charge_id: String(providerChargeId),
-      payment_method: input.payment_method, // ✅ obrigatório (corrige TS)
+      payment_method: input.payment_method, // âœ… obrigatÃ³rio (corrige TS)
       invoice_url: invoiceUrl ? String(invoiceUrl) : null,
       raw: paymentRes.data,
     };
   },
 
+  async cancelCharge(ctx, providerChargeId): Promise<void> {
+    if (!ctx.apiKey) {
+      throw Object.assign(new Error("Asaas apiKey is missing"), { status: 400 });
+    }
+
+    const api = axios.create({
+      baseURL: BASE_URL,
+      headers: {
+        access_token: ctx.apiKey,
+        "Content-Type": "application/json",
+      },
+      timeout: 20_000,
+    });
+
+    const encodedId = encodeURIComponent(providerChargeId);
+    try {
+      await api.post(`/payments/${encodedId}/cancel`);
+      return;
+    } catch (err: any) {
+      const status = err?.response?.status;
+      if (status !== 404) throw err;
+    }
+
+    await api.delete(`/payments/${encodedId}`);
+  },
   parseWebhook(body: any): ParsedWebhook | null {
     // Formato comum do Asaas:
     // { event: "PAYMENT_RECEIVED", payment: { id: "...", status: "RECEIVED" ... } }
@@ -110,3 +135,5 @@ export const AsaasProvider: PaymentsProvider = {
     };
   },
 };
+
+

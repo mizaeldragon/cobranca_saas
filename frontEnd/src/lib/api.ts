@@ -55,13 +55,20 @@ export const api = {
 
   listCustomers: (query = "") => request(`/customers${query}`),
   createCustomer: (payload: unknown) => request("/customers", { method: "POST", body: payload }),
+  updateCustomer: (id: string, payload: unknown) => request(`/customers/${id}`, { method: "PATCH", body: payload }),
+  deleteCustomer: (id: string) => request(`/customers/${id}`, { method: "DELETE" }),
 
   listCharges: (query = "") => request(`/charges${query}`),
   getCharge: (id: string) => request(`/charges/${id}`),
   createManualCharge: (payload: unknown) => request("/charges/manual", { method: "POST", body: payload }),
+  updateCharge: (id: string, payload: unknown) => request(`/charges/${id}`, { method: "PATCH", body: payload }),
+  cancelCharge: (id: string) => request(`/charges/${id}/cancel`, { method: "POST" }),
 
   listSubscriptions: (query = "") => request(`/subscriptions${query}`),
   createSubscription: (payload: unknown) => request("/subscriptions", { method: "POST", body: payload }),
+  updateSubscription: (id: string, payload: unknown) =>
+    request(`/subscriptions/${id}`, { method: "PATCH", body: payload }),
+  deleteSubscription: (id: string) => request(`/subscriptions/${id}`, { method: "DELETE" }),
 
   summary: (query = "") => request(`/reports/summary${query}`),
   mrr: () => request("/reports/mrr"),

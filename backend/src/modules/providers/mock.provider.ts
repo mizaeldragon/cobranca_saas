@@ -19,6 +19,10 @@ export const MockProvider: PaymentsProvider = {
     };
   },
 
+  async cancelCharge(_ctx, _providerChargeId): Promise<void> {
+    return;
+  },
+
   parseWebhook(body: any): ParsedWebhook | null {
     if (!body) return null;
 

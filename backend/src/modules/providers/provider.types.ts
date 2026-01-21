@@ -53,5 +53,7 @@ export type PaymentsProvider = {
     input: CreateChargeInput
   ): Promise<ProviderCreateChargeResult>;
 
+  cancelCharge(ctx: ProviderContext, providerChargeId: string): Promise<void>;
+
   parseWebhook(body: any): ParsedWebhook | null;
 };
