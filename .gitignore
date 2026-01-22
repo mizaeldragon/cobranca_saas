@@ -1,0 +1,10 @@
+# Env
+.env
+backend/.env
+frontEnd/.env
+
+# Node
+**/node_modules/
+**/dist/
+**/.tsx-cache/
+**/.vite/
