@@ -40,3 +40,5 @@ chargesRoutes.patch(
 chargesRoutes.post("/:id/cancel", ChargesController.cancel);
 
 chargesRoutes.post("/:id/mark-paid", ChargesController.markPaid);
+
+chargesRoutes.post("/:id/notify", ChargesController.notify);

@@ -12,6 +12,8 @@ export function SubscriptionsPage() {
   const [editOpen, setEditOpen] = useState(false);
   const [editingSub, setEditingSub] = useState<any | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<any | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
+  const [editFieldErrors, setEditFieldErrors] = useState<Record<string, string[]>>({});
   const [form, setForm] = useState({
     customerId: "",
     amountCents: 5000,
@@ -48,6 +50,7 @@ export function SubscriptionsPage() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setFieldErrors({});
     try {
       await api.createSubscription({
         customerId: form.customerId,
@@ -60,6 +63,7 @@ export function SubscriptionsPage() {
       await load();
     } catch (err: any) {
       setError(err?.message ?? "Failed to create subscription");
+      if (err?.fieldErrors) setFieldErrors(err.fieldErrors);
     } finally {
       setLoading(false);
     }
@@ -88,6 +92,7 @@ export function SubscriptionsPage() {
     if (!editingSub) return;
     setLoading(true);
     setError(null);
+    setEditFieldErrors({});
     try {
       await api.updateSubscription(editingSub.id, {
         amountCents: Number(editForm.amountCents),
@@ -100,6 +105,7 @@ export function SubscriptionsPage() {
       await load();
     } catch (err: any) {
       setError(err?.message ?? "Failed to update subscription");
+      if (err?.fieldErrors) setEditFieldErrors(err.fieldErrors);
     } finally {
       setLoading(false);
     }
@@ -145,6 +151,7 @@ export function SubscriptionsPage() {
                 </option>
               ))}
             </Select>
+            {fieldErrors.customerId?.[0] && <p className="text-xs text-red-500">{fieldErrors.customerId[0]}</p>}
           </div>
           <div className="space-y-2">
             <Label>Valor (centavos)</Label>
@@ -154,6 +161,7 @@ export function SubscriptionsPage() {
               onChange={(e) => setForm({ ...form, amountCents: Number(e.target.value) })}
               min={1}
             />
+            {fieldErrors.amountCents?.[0] && <p className="text-xs text-red-500">{fieldErrors.amountCents[0]}</p>}
           </div>
           <div className="space-y-2">
             <Label>Intervalo</Label>
@@ -162,6 +170,7 @@ export function SubscriptionsPage() {
               <option value="monthly">Mensal</option>
               <option value="yearly">Anual</option>
             </Select>
+            {fieldErrors.interval?.[0] && <p className="text-xs text-red-500">{fieldErrors.interval[0]}</p>}
           </div>
           <div className="space-y-2">
             <Label>Metodo</Label>
@@ -173,6 +182,7 @@ export function SubscriptionsPage() {
               <option value="pix">Pix</option>
               <option value="card">Cartao</option>
             </Select>
+            {fieldErrors.paymentMethod?.[0] && <p className="text-xs text-red-500">{fieldErrors.paymentMethod[0]}</p>}
           </div>
           <div className="space-y-2">
             <Label>Proximo vencimento</Label>
@@ -182,6 +192,7 @@ export function SubscriptionsPage() {
               onChange={(e) => setForm({ ...form, nextDueDate: e.target.value })}
               required
             />
+            {fieldErrors.nextDueDate?.[0] && <p className="text-xs text-red-500">{fieldErrors.nextDueDate[0]}</p>}
           </div>
           <div className="flex items-end">
             <Button type="submit" disabled={loading}>
@@ -274,6 +285,9 @@ export function SubscriptionsPage() {
                       onChange={(e) => setEditForm({ ...editForm, amountCents: Number(e.target.value) })}
                       min={1}
                     />
+                    {editFieldErrors.amountCents?.[0] && (
+                      <p className="text-xs text-red-500">{editFieldErrors.amountCents[0]}</p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label>Intervalo</Label>
@@ -285,6 +299,9 @@ export function SubscriptionsPage() {
                       <option value="monthly">Mensal</option>
                       <option value="yearly">Anual</option>
                     </Select>
+                    {editFieldErrors.interval?.[0] && (
+                      <p className="text-xs text-red-500">{editFieldErrors.interval[0]}</p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label>Metodo</Label>
@@ -296,6 +313,9 @@ export function SubscriptionsPage() {
                       <option value="pix">Pix</option>
                       <option value="card">Cartao</option>
                     </Select>
+                    {editFieldErrors.paymentMethod?.[0] && (
+                      <p className="text-xs text-red-500">{editFieldErrors.paymentMethod[0]}</p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label>Proximo vencimento</Label>
@@ -304,6 +324,9 @@ export function SubscriptionsPage() {
                       value={editForm.nextDueDate}
                       onChange={(e) => setEditForm({ ...editForm, nextDueDate: e.target.value })}
                     />
+                    {editFieldErrors.nextDueDate?.[0] && (
+                      <p className="text-xs text-red-500">{editFieldErrors.nextDueDate[0]}</p>
+                    )}
                   </div>
                   <div className="space-y-2 md:col-span-2">
                     <Label>Status</Label>
@@ -314,6 +337,7 @@ export function SubscriptionsPage() {
                       <option value="active">Ativo</option>
                       <option value="inactive">Inativo</option>
                     </Select>
+                    {editFieldErrors.active?.[0] && <p className="text-xs text-red-500">{editFieldErrors.active[0]}</p>}
                   </div>
                   <div className="flex items-end gap-3">
                     <Button type="submit" disabled={loading}>

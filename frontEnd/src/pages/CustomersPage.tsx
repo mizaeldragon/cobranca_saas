@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { createPortal } from "react-dom";
 import { api } from "../lib/api";
+import { maskCpfCnpj, maskPhone, onlyDigits } from "../lib/masks";
 import { Card, Input, Label, Button, SectionTitle } from "../components/ui";
 
 export function CustomersPage() {
@@ -10,6 +11,8 @@ export function CustomersPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<any | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
+  const [editFieldErrors, setEditFieldErrors] = useState<Record<string, string[]>>({});
   const [form, setForm] = useState({
     name: "",
     document: "",
@@ -48,12 +51,13 @@ export function CustomersPage() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setFieldErrors({});
     try {
       const payload = {
         name: form.name,
-        document: form.document,
+        document: onlyDigits(form.document),
         email: form.email || undefined,
-        phone: form.phone || undefined,
+        phone: form.phone ? onlyDigits(form.phone) : undefined,
         addressLine1: form.addressLine1 || undefined,
         city: form.city || undefined,
         state: form.state || undefined,
@@ -64,6 +68,7 @@ export function CustomersPage() {
       await load();
     } catch (err: any) {
       setError(err?.message ?? "Failed to create customer");
+      if (err?.fieldErrors) setFieldErrors(err.fieldErrors);
     } finally {
       setLoading(false);
     }
@@ -73,9 +78,9 @@ export function CustomersPage() {
     setEditingId(customer.id);
     setEditForm({
       name: customer.name ?? "",
-      document: customer.document ?? "",
+      document: maskCpfCnpj(customer.document ?? ""),
       email: customer.email ?? "",
-      phone: customer.phone ?? "",
+      phone: maskPhone(customer.phone ?? ""),
       addressLine1: customer.address_line1 ?? "",
       city: customer.city ?? "",
       state: customer.state ?? "",
@@ -95,12 +100,13 @@ export function CustomersPage() {
     if (!editingId) return;
     setLoading(true);
     setError(null);
+    setEditFieldErrors({});
     try {
       await api.updateCustomer(editingId, {
         name: editForm.name,
-        document: editForm.document,
+        document: onlyDigits(editForm.document),
         email: editForm.email || undefined,
-        phone: editForm.phone || undefined,
+        phone: editForm.phone ? onlyDigits(editForm.phone) : undefined,
         addressLine1: editForm.addressLine1 || undefined,
         city: editForm.city || undefined,
         state: editForm.state || undefined,
@@ -110,6 +116,7 @@ export function CustomersPage() {
       await load();
     } catch (err: any) {
       setError(err?.message ?? "Failed to update customer");
+      if (err?.fieldErrors) setEditFieldErrors(err.fieldErrors);
     } finally {
       setLoading(false);
     }
@@ -147,18 +154,26 @@ export function CustomersPage() {
           <div className="space-y-2">
             <Label>Nome</Label>
             <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+            {fieldErrors.name?.[0] && <p className="text-xs text-red-500">{fieldErrors.name[0]}</p>}
           </div>
           <div className="space-y-2">
             <Label>Documento</Label>
-            <Input value={form.document} onChange={(e) => setForm({ ...form, document: e.target.value })} required />
+            <Input
+              value={form.document}
+              onChange={(e) => setForm({ ...form, document: maskCpfCnpj(e.target.value) })}
+              required
+            />
+            {fieldErrors.document?.[0] && <p className="text-xs text-red-500">{fieldErrors.document[0]}</p>}
           </div>
           <div className="space-y-2">
             <Label>Email</Label>
             <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+            {fieldErrors.email?.[0] && <p className="text-xs text-red-500">{fieldErrors.email[0]}</p>}
           </div>
           <div className="space-y-2">
             <Label>Telefone</Label>
-            <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+            <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: maskPhone(e.target.value) })} />
+            {fieldErrors.phone?.[0] && <p className="text-xs text-red-500">{fieldErrors.phone[0]}</p>}
           </div>
           <div className="space-y-2 md:col-span-2">
             <Label>Endereco</Label>
@@ -167,18 +182,22 @@ export function CustomersPage() {
               onChange={(e) => setForm({ ...form, addressLine1: e.target.value })}
               placeholder="Rua e numero"
             />
+            {fieldErrors.addressLine1?.[0] && <p className="text-xs text-red-500">{fieldErrors.addressLine1[0]}</p>}
           </div>
           <div className="space-y-2">
             <Label>Cidade</Label>
             <Input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
+            {fieldErrors.city?.[0] && <p className="text-xs text-red-500">{fieldErrors.city[0]}</p>}
           </div>
           <div className="space-y-2">
             <Label>UF</Label>
             <Input value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value })} />
+            {fieldErrors.state?.[0] && <p className="text-xs text-red-500">{fieldErrors.state[0]}</p>}
           </div>
           <div className="space-y-2">
             <Label>CEP</Label>
             <Input value={form.zip} onChange={(e) => setForm({ ...form, zip: e.target.value })} />
+            {fieldErrors.zip?.[0] && <p className="text-xs text-red-500">{fieldErrors.zip[0]}</p>}
           </div>
           <div className="flex items-end">
             <Button type="submit" disabled={loading}>
@@ -255,48 +274,63 @@ export function CustomersPage() {
                   </button>
                 </div>
                 <form className="mt-6 grid gap-4 md:grid-cols-2" onSubmit={handleUpdate}>
-                  <div className="space-y-2">
-                    <Label>Nome</Label>
-                    <Input value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Documento</Label>
-                    <Input
-                      value={editForm.document}
-                      onChange={(e) => setEditForm({ ...editForm, document: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Email</Label>
-                    <Input
-                      type="email"
-                      value={editForm.email}
-                      onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Telefone</Label>
-                    <Input value={editForm.phone} onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })} />
-                  </div>
-                  <div className="space-y-2 md:col-span-2">
-                    <Label>Endereco</Label>
-                    <Input
-                      value={editForm.addressLine1}
-                      onChange={(e) => setEditForm({ ...editForm, addressLine1: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Cidade</Label>
-                    <Input value={editForm.city} onChange={(e) => setEditForm({ ...editForm, city: e.target.value })} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>UF</Label>
-                    <Input value={editForm.state} onChange={(e) => setEditForm({ ...editForm, state: e.target.value })} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>CEP</Label>
-                    <Input value={editForm.zip} onChange={(e) => setEditForm({ ...editForm, zip: e.target.value })} />
-                  </div>
+              <div className="space-y-2">
+                <Label>Nome</Label>
+                <Input value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} />
+                {editFieldErrors.name?.[0] && <p className="text-xs text-red-500">{editFieldErrors.name[0]}</p>}
+              </div>
+              <div className="space-y-2">
+                <Label>Documento</Label>
+                <Input
+                  value={editForm.document}
+                  onChange={(e) => setEditForm({ ...editForm, document: maskCpfCnpj(e.target.value) })}
+                />
+                {editFieldErrors.document?.[0] && (
+                  <p className="text-xs text-red-500">{editFieldErrors.document[0]}</p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label>Email</Label>
+                <Input
+                  type="email"
+                  value={editForm.email}
+                  onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                />
+                {editFieldErrors.email?.[0] && <p className="text-xs text-red-500">{editFieldErrors.email[0]}</p>}
+              </div>
+              <div className="space-y-2">
+                <Label>Telefone</Label>
+                <Input
+                  value={editForm.phone}
+                  onChange={(e) => setEditForm({ ...editForm, phone: maskPhone(e.target.value) })}
+                />
+                {editFieldErrors.phone?.[0] && <p className="text-xs text-red-500">{editFieldErrors.phone[0]}</p>}
+              </div>
+              <div className="space-y-2 md:col-span-2">
+                <Label>Endereco</Label>
+                <Input
+                  value={editForm.addressLine1}
+                  onChange={(e) => setEditForm({ ...editForm, addressLine1: e.target.value })}
+                />
+                {editFieldErrors.addressLine1?.[0] && (
+                  <p className="text-xs text-red-500">{editFieldErrors.addressLine1[0]}</p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label>Cidade</Label>
+                <Input value={editForm.city} onChange={(e) => setEditForm({ ...editForm, city: e.target.value })} />
+                {editFieldErrors.city?.[0] && <p className="text-xs text-red-500">{editFieldErrors.city[0]}</p>}
+              </div>
+              <div className="space-y-2">
+                <Label>UF</Label>
+                <Input value={editForm.state} onChange={(e) => setEditForm({ ...editForm, state: e.target.value })} />
+                {editFieldErrors.state?.[0] && <p className="text-xs text-red-500">{editFieldErrors.state[0]}</p>}
+              </div>
+              <div className="space-y-2">
+                <Label>CEP</Label>
+                <Input value={editForm.zip} onChange={(e) => setEditForm({ ...editForm, zip: e.target.value })} />
+                {editFieldErrors.zip?.[0] && <p className="text-xs text-red-500">{editFieldErrors.zip[0]}</p>}
+              </div>
                   <div className="flex items-end gap-3">
                     <Button type="submit" disabled={loading}>
                       {loading ? "Salvando..." : "Salvar alteracoes"}

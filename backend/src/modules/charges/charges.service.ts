@@ -2,14 +2,58 @@
 import { query } from "../../config/db";
 import { getProvider } from "../providers/providers.factory";
 import type { ProviderName } from "../providers/provider.types";
+import { sendChargeWhatsApp, type WhatsAppConfig } from "../../utils/whatsapp";
+import { sendChargeEmail, type EmailConfig } from "../../utils/email";
 
-type CompanyRow = { bank_provider: ProviderName; provider_api_key: string | null };
+type CompanyRow = {
+  bank_provider: ProviderName;
+  provider_api_key: string | null;
+  whatsapp_enabled?: boolean | null;
+  whatsapp_provider?: string | null;
+  meta_access_token?: string | null;
+  meta_phone_number_id?: string | null;
+  meta_base_url?: string | null;
+  email_enabled?: boolean | null;
+  smtp_host?: string | null;
+  smtp_port?: number | null;
+  smtp_user?: string | null;
+  smtp_pass?: string | null;
+  smtp_from?: string | null;
+  smtp_secure?: boolean | null;
+};
+
+function buildWhatsAppConfig(company: CompanyRow): WhatsAppConfig {
+  return {
+    enabled: company.whatsapp_enabled ?? false,
+    provider: (company.whatsapp_provider ?? "meta") as "meta" | "twilio",
+    metaAccessToken: company.meta_access_token,
+    metaPhoneNumberId: company.meta_phone_number_id,
+    metaBaseUrl: company.meta_base_url,
+  };
+}
+
+function buildEmailConfig(company: CompanyRow): EmailConfig {
+  return {
+    enabled: company.email_enabled ?? false,
+    smtpHost: company.smtp_host,
+    smtpPort: company.smtp_port ?? undefined,
+    smtpUser: company.smtp_user,
+    smtpPass: company.smtp_pass,
+    smtpFrom: company.smtp_from,
+    smtpSecure: company.smtp_secure ?? false,
+  };
+}
 
 export const ChargesService = {
   async getById(companyId: string, chargeId: string) {
     const rows = await query(
       `
-      SELECT ch.*, c.name as customer_name, c.document as customer_document
+      SELECT
+        ch.*,
+        c.name as customer_name,
+        c.document as customer_document,
+        c.email as customer_email,
+        c.phone as customer_phone
       FROM charges ch
       JOIN customers c ON c.id = ch.customer_id
       WHERE ch.company_id = $1 AND ch.id = $2
@@ -117,7 +161,25 @@ export const ChargesService = {
     }
 
     const company = (await query<CompanyRow>(
-      `SELECT bank_provider, provider_api_key FROM companies WHERE id = $1`,
+      `
+      SELECT
+        bank_provider,
+        provider_api_key,
+        whatsapp_enabled,
+        whatsapp_provider,
+        meta_access_token,
+        meta_phone_number_id,
+        meta_base_url,
+        email_enabled,
+        smtp_host,
+        smtp_port,
+        smtp_user,
+        smtp_pass,
+        smtp_from,
+        smtp_secure
+      FROM companies
+      WHERE id = $1
+      `,
       [companyId]
     ))[0];
     if (!company) throw Object.assign(new Error("Company not found"), { status: 404 });
@@ -238,7 +300,119 @@ const createdOnProvider = await provider.createCharge(
       ]
     );
 
+    try {
+      const result = await sendChargeWhatsApp({
+        customerName: customer.name,
+        phone: customer.phone,
+        amountCents: data.amountCents,
+        dueDate: data.dueDate,
+        invoiceUrl: createdOnProvider.invoice_url ?? null,
+        config: buildWhatsAppConfig(company),
+      });
+      if (result) {
+        console.log("[whatsapp] sent:", { provider: result.provider, sid: result.sid, status: result.status });
+      }
+    } catch (err) {
+      console.warn("[whatsapp] failed to send charge message:", err?.response?.data ?? err);
+    }
+
+    try {
+      const info = await sendChargeEmail({
+        customerName: customer.name,
+        email: customer.email,
+        amountCents: data.amountCents,
+        dueDate: data.dueDate,
+        invoiceUrl: createdOnProvider.invoice_url ?? null,
+        config: buildEmailConfig(company),
+      });
+      if (info) {
+        console.log("[email] sent:", { messageId: info.messageId });
+      }
+    } catch (err) {
+      console.warn("[email] failed to send charge message:", err?.response?.data ?? err);
+    }
+
     return { ...ch, providerData: createdOnProvider };
+  },
+
+  async notifyCharge(companyId: string, chargeId: string) {
+    const rows = await query<any>(
+      `
+      SELECT
+        ch.*,
+        c.name as customer_name,
+        c.email as customer_email,
+        c.phone as customer_phone,
+        co.whatsapp_enabled,
+        co.whatsapp_provider,
+        co.meta_access_token,
+        co.meta_phone_number_id,
+        co.meta_base_url,
+        co.email_enabled,
+        co.smtp_host,
+        co.smtp_port,
+        co.smtp_user,
+        co.smtp_pass,
+        co.smtp_from,
+        co.smtp_secure
+      FROM charges ch
+      JOIN customers c ON c.id = ch.customer_id
+      JOIN companies co ON co.id = ch.company_id
+      WHERE ch.company_id = $1 AND ch.id = $2
+      LIMIT 1
+      `,
+      [companyId, chargeId]
+    );
+    const ch = rows[0];
+    if (!ch) throw Object.assign(new Error("Charge not found"), { status: 404 });
+
+    const notifyResult: {
+      whatsapp?: { ok: boolean; result?: any; error?: any };
+      email?: { ok: boolean; result?: any; error?: any };
+    } = {};
+
+    try {
+      const result = await sendChargeWhatsApp({
+        customerName: ch.customer_name,
+        phone: ch.customer_phone,
+        amountCents: ch.amount_cents,
+        dueDate: ch.due_date,
+        invoiceUrl: ch.invoice_url ?? null,
+        config: buildWhatsAppConfig(ch as CompanyRow),
+      });
+      notifyResult.whatsapp = { ok: true, result };
+      if (result) {
+        console.log("[whatsapp] notify sent:", { provider: result.provider, sid: result.sid, status: result.status });
+      }
+    } catch (err) {
+      notifyResult.whatsapp = { ok: false, error: err?.response?.data ?? err?.message ?? err };
+      console.warn("[whatsapp] failed to send charge message:", err?.response?.data ?? err);
+    }
+
+    try {
+      const info = await sendChargeEmail({
+        customerName: ch.customer_name,
+        email: ch.customer_email,
+        amountCents: ch.amount_cents,
+        dueDate: ch.due_date,
+        invoiceUrl: ch.invoice_url ?? null,
+        config: buildEmailConfig(ch as CompanyRow),
+      });
+      notifyResult.email = { ok: true, result: info };
+      if (info) {
+        console.log("[email] notify sent:", { messageId: info.messageId });
+      }
+    } catch (err) {
+      notifyResult.email = { ok: false, error: err?.response?.data ?? err?.message ?? err };
+      console.warn("[email] failed to send charge message:", err?.response?.data ?? err);
+    }
+
+    return {
+      ok: true,
+      phone: ch.customer_phone ?? null,
+      email: ch.customer_email ?? null,
+      ...notifyResult,
+    };
   },
 
   async markPaid(companyId: string, chargeId: string, meta: { source: string }) {

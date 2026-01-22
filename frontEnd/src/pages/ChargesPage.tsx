@@ -12,6 +12,8 @@ export function ChargesPage() {
   const [editOpen, setEditOpen] = useState(false);
   const [editingCharge, setEditingCharge] = useState<any | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<any | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
+  const [editFieldErrors, setEditFieldErrors] = useState<Record<string, string[]>>({});
   const [form, setForm] = useState({
     customerId: "",
     amountCents: 2000,
@@ -46,6 +48,7 @@ export function ChargesPage() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setFieldErrors({});
     try {
       await api.createManualCharge({
         customerId: form.customerId,
@@ -58,6 +61,7 @@ export function ChargesPage() {
       await load();
     } catch (err: any) {
       setError(err?.message ?? "Failed to create charge");
+      if (err?.fieldErrors) setFieldErrors(err.fieldErrors);
     } finally {
       setLoading(false);
     }
@@ -84,6 +88,7 @@ export function ChargesPage() {
     if (!editingCharge) return;
     setLoading(true);
     setError(null);
+    setEditFieldErrors({});
     try {
       await api.updateCharge(editingCharge.id, {
         amountCents: Number(editForm.amountCents),
@@ -94,6 +99,7 @@ export function ChargesPage() {
       await load();
     } catch (err: any) {
       setError(err?.message ?? "Failed to update charge");
+      if (err?.fieldErrors) setEditFieldErrors(err.fieldErrors);
     } finally {
       setLoading(false);
     }
@@ -137,6 +143,7 @@ export function ChargesPage() {
                 </option>
               ))}
             </Select>
+            {fieldErrors.customerId?.[0] && <p className="text-xs text-red-500">{fieldErrors.customerId[0]}</p>}
           </div>
           <div className="space-y-2">
             <Label>Valor (centavos)</Label>
@@ -146,10 +153,12 @@ export function ChargesPage() {
               onChange={(e) => setForm({ ...form, amountCents: Number(e.target.value) })}
               min={1}
             />
+            {fieldErrors.amountCents?.[0] && <p className="text-xs text-red-500">{fieldErrors.amountCents[0]}</p>}
           </div>
           <div className="space-y-2">
             <Label>Vencimento</Label>
             <Input type="date" value={form.dueDate} onChange={(e) => setForm({ ...form, dueDate: e.target.value })} />
+            {fieldErrors.dueDate?.[0] && <p className="text-xs text-red-500">{fieldErrors.dueDate[0]}</p>}
           </div>
           <div className="space-y-2">
             <Label>Metodo</Label>
@@ -161,6 +170,7 @@ export function ChargesPage() {
               <option value="pix">Pix</option>
               <option value="card">Cartao</option>
             </Select>
+            {fieldErrors.paymentMethod?.[0] && <p className="text-xs text-red-500">{fieldErrors.paymentMethod[0]}</p>}
           </div>
           <div className="space-y-2 md:col-span-2">
             <Label>Descricao</Label>
@@ -169,6 +179,7 @@ export function ChargesPage() {
               onChange={(e) => setForm({ ...form, description: e.target.value })}
               placeholder="Mensalidade, setup, etc."
             />
+            {fieldErrors.description?.[0] && <p className="text-xs text-red-500">{fieldErrors.description[0]}</p>}
           </div>
           <div className="flex items-end">
             <Button type="submit" disabled={loading}>
@@ -267,6 +278,9 @@ export function ChargesPage() {
                       onChange={(e) => setEditForm({ ...editForm, amountCents: Number(e.target.value) })}
                       min={1}
                     />
+                    {editFieldErrors.amountCents?.[0] && (
+                      <p className="text-xs text-red-500">{editFieldErrors.amountCents[0]}</p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label>Vencimento</Label>
@@ -275,6 +289,9 @@ export function ChargesPage() {
                       value={editForm.dueDate}
                       onChange={(e) => setEditForm({ ...editForm, dueDate: e.target.value })}
                     />
+                    {editFieldErrors.dueDate?.[0] && (
+                      <p className="text-xs text-red-500">{editFieldErrors.dueDate[0]}</p>
+                    )}
                   </div>
                   <div className="space-y-2 md:col-span-2">
                     <Label>Metodo</Label>
@@ -286,6 +303,9 @@ export function ChargesPage() {
                       <option value="pix">Pix</option>
                       <option value="card">Cartao</option>
                     </Select>
+                    {editFieldErrors.paymentMethod?.[0] && (
+                      <p className="text-xs text-red-500">{editFieldErrors.paymentMethod[0]}</p>
+                    )}
                   </div>
                   <div className="flex items-end gap-3">
                     <Button type="submit" disabled={loading}>

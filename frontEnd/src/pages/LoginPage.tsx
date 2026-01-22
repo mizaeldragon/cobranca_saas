@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../lib/api";
 import type { AuthPayload } from "../lib/auth";
+import { maskCpfCnpj, onlyDigits } from "../lib/masks";
 
 type LoginPageProps = {
   onAuth: (payload: AuthPayload) => void;
@@ -14,6 +15,7 @@ export function LoginPage({ onAuth, theme, onToggleTheme }: LoginPageProps) {
   const [mode, setMode] = useState<"login" | "register">("login");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const [form, setForm] = useState({
     legalName: "",
     document: "",
@@ -27,6 +29,7 @@ export function LoginPage({ onAuth, theme, onToggleTheme }: LoginPageProps) {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setFieldErrors({});
     try {
       if (mode === "login") {
         const payload = (await api.login({ email: form.email, password: form.password })) as AuthPayload;
@@ -34,7 +37,7 @@ export function LoginPage({ onAuth, theme, onToggleTheme }: LoginPageProps) {
       } else {
         const payload = (await api.register({
           legalName: form.legalName,
-          document: form.document,
+          document: onlyDigits(form.document),
           email: form.email,
           password: form.password,
           bankProvider: form.bankProvider,
@@ -44,6 +47,7 @@ export function LoginPage({ onAuth, theme, onToggleTheme }: LoginPageProps) {
       }
     } catch (err: any) {
       setError(err?.message ?? "Falha ao autenticar");
+      if (err?.fieldErrors) setFieldErrors(err.fieldErrors);
     } finally {
       setLoading(false);
     }
@@ -117,16 +121,22 @@ export function LoginPage({ onAuth, theme, onToggleTheme }: LoginPageProps) {
                     placeholder="Nome legal da empresa"
                     required
                   />
+                  {fieldErrors.legalName?.[0] && (
+                    <span className="text-xs text-red-500">{fieldErrors.legalName[0]}</span>
+                  )}
                 </label>
                 <label className="grid gap-2 text-xs font-semibold uppercase tracking-[0.2em]">
                   Documento
                   <input
                     className={inputClass}
                     value={form.document}
-                    onChange={(e) => setForm({ ...form, document: e.target.value })}
+                    onChange={(e) => setForm({ ...form, document: maskCpfCnpj(e.target.value) })}
                     placeholder="CPF/CNPJ"
                     required
                   />
+                  {fieldErrors.document?.[0] && (
+                    <span className="text-xs text-red-500">{fieldErrors.document[0]}</span>
+                  )}
                 </label>
               </>
             )}
@@ -141,6 +151,7 @@ export function LoginPage({ onAuth, theme, onToggleTheme }: LoginPageProps) {
                 placeholder="voce@empresa.com"
                 required
               />
+              {fieldErrors.email?.[0] && <span className="text-xs text-red-500">{fieldErrors.email[0]}</span>}
             </label>
 
             <label className="grid gap-2 text-xs font-semibold uppercase tracking-[0.2em]">
@@ -153,6 +164,7 @@ export function LoginPage({ onAuth, theme, onToggleTheme }: LoginPageProps) {
                 placeholder="Minimo 6 caracteres"
                 required
               />
+              {fieldErrors.password?.[0] && <span className="text-xs text-red-500">{fieldErrors.password[0]}</span>}
             </label>
 
             {mode === "register" && (
@@ -170,6 +182,9 @@ export function LoginPage({ onAuth, theme, onToggleTheme }: LoginPageProps) {
                       Cora (em breve)
                     </option>
                   </select>
+                  {fieldErrors.bankProvider?.[0] && (
+                    <span className="text-xs text-red-500">{fieldErrors.bankProvider[0]}</span>
+                  )}
                 </label>
                 <label className="grid gap-2 text-xs font-semibold uppercase tracking-[0.2em]">
                   API Key do banco
@@ -179,6 +194,9 @@ export function LoginPage({ onAuth, theme, onToggleTheme }: LoginPageProps) {
                     onChange={(e) => setForm({ ...form, providerApiKey: e.target.value })}
                     placeholder="Opcional para mock"
                   />
+                  {fieldErrors.providerApiKey?.[0] && (
+                    <span className="text-xs text-red-500">{fieldErrors.providerApiKey[0]}</span>
+                  )}
                 </label>
               </>
             )}

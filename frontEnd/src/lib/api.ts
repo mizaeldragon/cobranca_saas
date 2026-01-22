@@ -31,7 +31,11 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 
   if (!res.ok) {
     const message = data?.error || `Request failed: ${res.status}`;
-    throw new Error(message);
+    const err = new Error(message) as Error & { fieldErrors?: Record<string, string[]> };
+    if (data?.details?.fieldErrors) {
+      err.fieldErrors = data.details.fieldErrors;
+    }
+    throw err;
   }
 
   return data as T;
@@ -50,8 +54,23 @@ export const api = {
   }) => request("/auth/register", { method: "POST", body: payload, auth: false }),
 
   getCompany: () => request("/companies/me"),
-  updateCompany: (payload: { legalName?: string; bankProvider?: string; providerApiKey?: string | null }) =>
-    request("/companies/me", { method: "PATCH", body: payload }),
+  updateCompany: (payload: {
+    legalName?: string;
+    bankProvider?: string;
+    providerApiKey?: string | null;
+    whatsappEnabled?: boolean;
+    whatsappProvider?: string;
+    metaAccessToken?: string | null;
+    metaPhoneNumberId?: string | null;
+    metaBaseUrl?: string | null;
+    emailEnabled?: boolean;
+    smtpHost?: string | null;
+    smtpPort?: number | null;
+    smtpUser?: string | null;
+    smtpPass?: string | null;
+    smtpFrom?: string | null;
+    smtpSecure?: boolean;
+  }) => request("/companies/me", { method: "PATCH", body: payload }),
 
   listCustomers: (query = "") => request(`/customers${query}`),
   createCustomer: (payload: unknown) => request("/customers", { method: "POST", body: payload }),

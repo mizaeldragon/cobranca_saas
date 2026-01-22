@@ -37,4 +37,10 @@ export const ChargesController = {
     const updated = await ChargesService.markPaid(companyId, req.params.id, { source: "manual" });
     res.json(updated);
   },
+
+  async notify(req: Request, res: Response) {
+    const companyId = req.auth!.companyId;
+    const result = await ChargesService.notifyCharge(companyId, req.params.id);
+    res.json(result);
+  },
 };

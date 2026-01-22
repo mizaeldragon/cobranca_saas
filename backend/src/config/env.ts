@@ -26,4 +26,23 @@ export const env = {
 
   ASAAS_BASE_URL: process.env.ASAAS_BASE_URL,
   ASAAS_ALLOW_PIX: process.env.ASAAS_ALLOW_PIX === "true",
+
+  WHATSAPP_ENABLED: process.env.WHATSAPP_ENABLED === "true",
+  WHATSAPP_PROVIDER: process.env.WHATSAPP_PROVIDER ?? "meta",
+  WHATSAPP_BASE_URL: process.env.WHATSAPP_BASE_URL ?? "https://graph.facebook.com/v20.0",
+  WHATSAPP_ACCESS_TOKEN: process.env.WHATSAPP_ACCESS_TOKEN,
+  WHATSAPP_PHONE_NUMBER_ID: process.env.WHATSAPP_PHONE_NUMBER_ID,
+
+  TWILIO_ACCOUNT_SID: process.env.TWILIO_ACCOUNT_SID,
+  TWILIO_AUTH_TOKEN: process.env.TWILIO_AUTH_TOKEN,
+  TWILIO_WHATSAPP_FROM: process.env.TWILIO_WHATSAPP_FROM,
+  TWILIO_WHATSAPP_TEMPLATE_SID: process.env.TWILIO_WHATSAPP_TEMPLATE_SID,
+
+  EMAIL_ENABLED: process.env.EMAIL_ENABLED === "true",
+  SMTP_HOST: process.env.SMTP_HOST,
+  SMTP_PORT: process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : undefined,
+  SMTP_USER: process.env.SMTP_USER,
+  SMTP_PASS: process.env.SMTP_PASS,
+  SMTP_FROM: process.env.SMTP_FROM,
+  SMTP_SECURE: process.env.SMTP_SECURE === "true",
 };
