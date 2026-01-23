@@ -39,12 +39,22 @@ export const AsaasProvider: PaymentsProvider = {
 
     // 1) cria cliente no Asaas (MVP)
     // (depois podemos melhorar: buscar cliente existente por cpfCnpj pra nÃ£o duplicar)
-    const customerRes = await api.post("/customers", {
-      name: input.customer.name,
-      cpfCnpj: input.customer.document,
-      email: input.customer.email ?? undefined,
-      phone: input.customer.phone ?? undefined,
-    });
+    let customerRes;
+    try {
+      customerRes = await api.post("/customers", {
+        name: input.customer.name,
+        cpfCnpj: input.customer.document,
+        email: input.customer.email ?? undefined,
+        phone: input.customer.phone ?? undefined,
+      });
+    } catch (err: any) {
+      const details = err?.response?.data;
+      console.error("[asaas] create customer failed:", details ?? err?.message ?? err);
+      throw Object.assign(new Error("Asaas customer create failed"), {
+        status: err?.response?.status ?? 502,
+        details,
+      });
+    }
 
     const customerId = customerRes.data?.id;
     if (!customerId) {
@@ -52,13 +62,23 @@ export const AsaasProvider: PaymentsProvider = {
     }
 
     // 2) cria cobranÃ§a
-    const paymentRes = await api.post("/payments", {
-      customer: customerId,
-      billingType: mapBillingType(input.payment_method),
-      value: Number((input.amount_cents / 100).toFixed(2)),
-      dueDate: input.due_date, // YYYY-MM-DD
-      description: input.description ?? undefined,
-    });
+    let paymentRes;
+    try {
+      paymentRes = await api.post("/payments", {
+        customer: customerId,
+        billingType: mapBillingType(input.payment_method),
+        value: Number((input.amount_cents / 100).toFixed(2)),
+        dueDate: input.due_date, // YYYY-MM-DD
+        description: input.description ?? undefined,
+      });
+    } catch (err: any) {
+      const details = err?.response?.data;
+      console.error("[asaas] create payment failed:", details ?? err?.message ?? err);
+      throw Object.assign(new Error("Asaas payment create failed"), {
+        status: err?.response?.status ?? 502,
+        details,
+      });
+    }
 
     const providerChargeId = paymentRes.data?.id;
     if (!providerChargeId) {

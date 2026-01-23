@@ -24,6 +24,16 @@ function isISODate(d: any): d is string {
   return typeof d === "string" && /^\d{4}-\d{2}-\d{2}$/.test(d);
 }
 
+function normalizeISODate(d: any): string | null {
+  if (isISODate(d)) return d;
+  if (typeof d === "string") {
+    const parsed = new Date(d);
+    if (!Number.isNaN(parsed.getTime())) return toISODate(parsed);
+  }
+  if (d instanceof Date && !Number.isNaN(d.getTime())) return toISODate(d);
+  return null;
+}
+
 function startOfDayISO(d = new Date()): string {
   return toISODate(d);
 }
@@ -81,7 +91,8 @@ export async function runChargeSchedulerOnce(todayISO = startOfDayISO()) {
   let processed = 0;
 
   for (const s of subs) {
-    if (!isISODate(s.next_due_date)) {
+    const nextDueDate = normalizeISODate(s.next_due_date);
+    if (!nextDueDate) {
       console.warn("[scheduler] invalid next_due_date, skipping:", {
         subscriptionId: s.id,
         next_due_date: s.next_due_date,
@@ -89,13 +100,14 @@ export async function runChargeSchedulerOnce(todayISO = startOfDayISO()) {
       continue;
     }
 
-    // IdempotÇ¦ncia por assinatura+vencimento (nÇœo duplica cobranÇõa)    const idempotencyKey = `sub:${s.id}:due:${s.next_due_date}`;
+    // IdempotÇ¦ncia por assinatura+vencimento (nÇœo duplica cobranÇõa)
+    const idempotencyKey = `sub:${s.id}:due:${nextDueDate}`;
 
     // cria cobranÃ§a (se jÃ¡ existir, o ChargesService devolve a existente e nÃ£o cria no provider)
     await ChargesService.createManual(s.company_id, {
       customerId: s.customer_id,
       amountCents: s.amount_cents,
-      dueDate: s.next_due_date,
+      dueDate: nextDueDate,
       paymentMethod: s.payment_method,
       description: `RecorrÃªncia (${s.interval}) - subscription ${s.id}`,
       idempotencyKey,
@@ -106,7 +118,7 @@ export async function runChargeSchedulerOnce(todayISO = startOfDayISO()) {
     });
 
         // Atualiza prÇüxima data de vencimento da assinatura
-    const next = addInterval(new Date(s.next_due_date + "T00:00:00"), s.interval);
+    const next = addInterval(new Date(nextDueDate + "T00:00:00"), s.interval);
     if (Number.isNaN(next.getTime())) {
       console.warn("[scheduler] invalid next date generated, skipping update:", {
         subscriptionId: s.id,
