@@ -15,6 +15,8 @@ export const CompaniesService = {
         meta_access_token,
         meta_phone_number_id,
         meta_base_url,
+        meta_template_name,
+        meta_template_language,
         email_enabled,
         smtp_host,
         smtp_port,
@@ -43,6 +45,8 @@ export const CompaniesService = {
       metaAccessToken?: string | null;
       metaPhoneNumberId?: string | null;
       metaBaseUrl?: string | null;
+      metaTemplateName?: string | null;
+      metaTemplateLanguage?: string | null;
       emailEnabled?: boolean;
       smtpHost?: string | null;
       smtpPort?: number | null;
@@ -64,13 +68,15 @@ export const CompaniesService = {
         meta_access_token = COALESCE($7, meta_access_token),
         meta_phone_number_id = COALESCE($8, meta_phone_number_id),
         meta_base_url = COALESCE($9, meta_base_url),
-        email_enabled = COALESCE($10, email_enabled),
-        smtp_host = COALESCE($11, smtp_host),
-        smtp_port = COALESCE($12, smtp_port),
-        smtp_user = COALESCE($13, smtp_user),
-        smtp_pass = COALESCE($14, smtp_pass),
-        smtp_from = COALESCE($15, smtp_from),
-        smtp_secure = COALESCE($16, smtp_secure)
+        meta_template_name = COALESCE($10, meta_template_name),
+        meta_template_language = COALESCE($11, meta_template_language),
+        email_enabled = COALESCE($12, email_enabled),
+        smtp_host = COALESCE($13, smtp_host),
+        smtp_port = COALESCE($14, smtp_port),
+        smtp_user = COALESCE($15, smtp_user),
+        smtp_pass = COALESCE($16, smtp_pass),
+        smtp_from = COALESCE($17, smtp_from),
+        smtp_secure = COALESCE($18, smtp_secure)
       WHERE id = $1
       RETURNING
         id,
@@ -83,6 +89,8 @@ export const CompaniesService = {
         meta_access_token,
         meta_phone_number_id,
         meta_base_url,
+        meta_template_name,
+        meta_template_language,
         email_enabled,
         smtp_host,
         smtp_port,
@@ -102,6 +110,8 @@ export const CompaniesService = {
         data.metaAccessToken ?? null,
         data.metaPhoneNumberId ?? null,
         data.metaBaseUrl ?? null,
+        data.metaTemplateName ?? null,
+        data.metaTemplateLanguage ?? null,
         typeof data.emailEnabled === "boolean" ? data.emailEnabled : null,
         data.smtpHost ?? null,
         typeof data.smtpPort === "number" ? data.smtpPort : null,

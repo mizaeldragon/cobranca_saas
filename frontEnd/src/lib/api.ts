@@ -63,6 +63,8 @@ export const api = {
     metaAccessToken?: string | null;
     metaPhoneNumberId?: string | null;
     metaBaseUrl?: string | null;
+    metaTemplateName?: string | null;
+    metaTemplateLanguage?: string | null;
     emailEnabled?: boolean;
     smtpHost?: string | null;
     smtpPort?: number | null;

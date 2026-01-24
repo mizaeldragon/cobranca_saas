@@ -11,6 +11,8 @@ export type WhatsAppConfig = {
   metaAccessToken?: string | null;
   metaPhoneNumberId?: string | null;
   metaBaseUrl?: string | null;
+  metaTemplateName?: string | null;
+  metaTemplateLanguage?: string | null;
 };
 
 export type WhatsAppSendResult = {
@@ -47,6 +49,8 @@ function resolveConfig(config?: WhatsAppConfig): WhatsAppConfig {
     metaAccessToken: env.WHATSAPP_ACCESS_TOKEN,
     metaPhoneNumberId: env.WHATSAPP_PHONE_NUMBER_ID,
     metaBaseUrl: env.WHATSAPP_BASE_URL,
+    metaTemplateName: process.env.WHATSAPP_TEMPLATE_NAME,
+    metaTemplateLanguage: process.env.WHATSAPP_TEMPLATE_LANGUAGE,
   };
 }
 
@@ -67,22 +71,38 @@ export async function sendWhatsAppMessage({
       throw new Error("WhatsApp config missing");
     }
 
-    const res = await axios.post(
-      `${resolved.metaBaseUrl ?? "https://graph.facebook.com/v20.0"}/${resolved.metaPhoneNumberId}/messages`,
-      {
-        messaging_product: "whatsapp",
-        to: normalized,
-        type: "text",
-        text: { body },
+    const baseUrl = resolved.metaBaseUrl ?? "https://graph.facebook.com/v20.0";
+    const hasTemplate = Boolean(resolved.metaTemplateName);
+    const templateParams = templateVars
+      ? Object.keys(templateVars)
+          .sort()
+          .map((key) => ({ type: "text", text: String(templateVars[key] ?? "") }))
+      : [];
+    const payload = hasTemplate
+      ? {
+          messaging_product: "whatsapp",
+          to: normalized,
+          type: "template",
+          template: {
+            name: resolved.metaTemplateName,
+            language: { code: resolved.metaTemplateLanguage ?? "pt_BR" },
+            components: [{ type: "body", parameters: templateParams }],
+          },
+        }
+      : {
+          messaging_product: "whatsapp",
+          to: normalized,
+          type: "text",
+          text: { body },
+        };
+
+    const res = await axios.post(`${baseUrl}/${resolved.metaPhoneNumberId}/messages`, payload, {
+      headers: {
+        Authorization: `Bearer ${resolved.metaAccessToken}`,
+        "Content-Type": "application/json",
       },
-      {
-        headers: {
-          Authorization: `Bearer ${resolved.metaAccessToken}`,
-          "Content-Type": "application/json",
-        },
-        timeout: 10000,
-      }
-    );
+      timeout: 10000,
+    });
     return { provider: "meta", raw: res.data };
   }
 
@@ -152,8 +172,10 @@ export async function sendChargeWhatsApp(input: ChargeWhatsAppInput) {
     to: input.phone,
     body: lines.join("\n"),
     templateVars: {
-      "1": input.dueDate,
+      "1": input.customerName,
       "2": formatMoney(input.amountCents),
+      "3": input.dueDate,
+      "4": input.invoiceUrl ?? "-",
     },
     config: input.config,
   });

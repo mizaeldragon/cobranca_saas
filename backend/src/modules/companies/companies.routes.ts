@@ -22,6 +22,8 @@ companiesRoutes.patch(
       metaAccessToken: z.string().optional().nullable(),
       metaPhoneNumberId: z.string().optional().nullable(),
       metaBaseUrl: z.string().optional().nullable(),
+      metaTemplateName: z.string().optional().nullable(),
+      metaTemplateLanguage: z.string().optional().nullable(),
       emailEnabled: z.boolean().optional(),
       smtpHost: z.string().optional().nullable(),
       smtpPort: z.number().int().optional().nullable(),

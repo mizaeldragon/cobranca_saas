@@ -12,6 +12,8 @@ export function SettingsPage() {
     metaAccessToken: "",
     metaPhoneNumberId: "",
     metaBaseUrl: "https://graph.facebook.com/v20.0",
+    metaTemplateName: "",
+    metaTemplateLanguage: "pt_BR",
     emailEnabled: false,
     smtpHost: "",
     smtpPort: "587",
@@ -40,6 +42,8 @@ export function SettingsPage() {
           metaAccessToken: data.meta_access_token ?? "",
           metaPhoneNumberId: data.meta_phone_number_id ?? "",
           metaBaseUrl: data.meta_base_url ?? "https://graph.facebook.com/v20.0",
+          metaTemplateName: data.meta_template_name ?? "",
+          metaTemplateLanguage: data.meta_template_language ?? "pt_BR",
           emailEnabled: Boolean(data.email_enabled),
           smtpHost: data.smtp_host ?? "",
           smtpPort: data.smtp_port ? String(data.smtp_port) : "587",
@@ -75,6 +79,8 @@ export function SettingsPage() {
         metaAccessToken: form.metaAccessToken || null,
         metaPhoneNumberId: form.metaPhoneNumberId || null,
         metaBaseUrl: form.metaBaseUrl || null,
+        metaTemplateName: form.metaTemplateName || null,
+        metaTemplateLanguage: form.metaTemplateLanguage || null,
         emailEnabled: form.emailEnabled,
         smtpHost: form.smtpHost || null,
         smtpPort: form.smtpPort ? Number(form.smtpPort) : null,
@@ -191,6 +197,30 @@ export function SettingsPage() {
             />
             {fieldErrors.metaBaseUrl?.[0] && (
               <p className="text-xs text-red-500">{fieldErrors.metaBaseUrl[0]}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label>Template name</Label>
+            <Input
+              value={form.metaTemplateName}
+              onChange={(e) => setForm({ ...form, metaTemplateName: e.target.value })}
+              placeholder="cobranca_gerada"
+            />
+            {fieldErrors.metaTemplateName?.[0] && (
+              <p className="text-xs text-red-500">{fieldErrors.metaTemplateName[0]}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label>Template language</Label>
+            <Input
+              value={form.metaTemplateLanguage}
+              onChange={(e) => setForm({ ...form, metaTemplateLanguage: e.target.value })}
+              placeholder="pt_BR"
+            />
+            {fieldErrors.metaTemplateLanguage?.[0] && (
+              <p className="text-xs text-red-500">{fieldErrors.metaTemplateLanguage[0]}</p>
             )}
           </div>
 

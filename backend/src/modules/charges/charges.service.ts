@@ -13,6 +13,8 @@ type CompanyRow = {
   meta_access_token?: string | null;
   meta_phone_number_id?: string | null;
   meta_base_url?: string | null;
+  meta_template_name?: string | null;
+  meta_template_language?: string | null;
   email_enabled?: boolean | null;
   smtp_host?: string | null;
   smtp_port?: number | null;
@@ -29,6 +31,8 @@ function buildWhatsAppConfig(company: CompanyRow): WhatsAppConfig {
     metaAccessToken: company.meta_access_token,
     metaPhoneNumberId: company.meta_phone_number_id,
     metaBaseUrl: company.meta_base_url,
+    metaTemplateName: company.meta_template_name,
+    metaTemplateLanguage: company.meta_template_language,
   };
 }
 
@@ -170,6 +174,8 @@ export const ChargesService = {
         meta_access_token,
         meta_phone_number_id,
         meta_base_url,
+        meta_template_name,
+        meta_template_language,
         email_enabled,
         smtp_host,
         smtp_port,
@@ -348,6 +354,8 @@ const createdOnProvider = await provider.createCharge(
         co.meta_access_token,
         co.meta_phone_number_id,
         co.meta_base_url,
+        co.meta_template_name,
+        co.meta_template_language,
         co.email_enabled,
         co.smtp_host,
         co.smtp_port,
