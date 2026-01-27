@@ -1,17 +1,20 @@
 import { Router } from "express";
 import { requireAuth } from "../../middleware/auth";
+import { attachUser, requireRole } from "../../middleware/rbac";
 import { validateBody } from "../../middleware/validate";
 import { z } from "zod";
 import { CompaniesController } from "./companies.controller";
 
 export const companiesRoutes = Router();
 
-companiesRoutes.use(requireAuth);
+companiesRoutes.use(requireAuth, attachUser);
 
-companiesRoutes.get("/me", CompaniesController.me);
+// todos podem ver; só OWNER/ADMIN editam
+companiesRoutes.get("/me", requireRole(["OWNER", "ADMIN", "FINANCE", "VIEWER"]), CompaniesController.me);
 
 companiesRoutes.patch(
   "/me",
+  requireRole(["OWNER", "ADMIN"]),
   validateBody(
     z.object({
       legalName: z.string().min(2).optional(),

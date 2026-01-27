@@ -14,7 +14,7 @@ type Summary = {
   };
 };
 
-export function DashboardPage() {
+export function DashboardPage({ canViewReports = true }: { canViewReports?: boolean }) {
   const [summary, setSummary] = useState<Summary | null>(null);
   const [charges, setCharges] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -24,11 +24,11 @@ export function DashboardPage() {
     async function load() {
       try {
         const [summaryData, chargesData] = await Promise.all([
-          api.summary(""),
+          canViewReports ? api.summary("") : Promise.resolve(null),
           api.listCharges("?page=1&pageSize=5"),
         ]);
         if (!active) return;
-        setSummary(summaryData as Summary);
+        setSummary((summaryData as Summary | null) ?? null);
         setCharges((chargesData as any)?.items ?? chargesData ?? []);
       } catch (err: any) {
         if (!active) return;
@@ -39,7 +39,7 @@ export function DashboardPage() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [canViewReports]);
 
   return (
     <div className="space-y-6 animate-rise">

@@ -4,7 +4,7 @@ import { api } from "../lib/api";
 import { formatCents, formatDate } from "../lib/format";
 import { Button, Card, Input, Label, SectionTitle, Select } from "../components/ui";
 
-export function ChargesPage() {
+export function ChargesPage({ canManage = true }: { canManage?: boolean }) {
   const [charges, setCharges] = useState<any[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -129,66 +129,80 @@ export function ChargesPage() {
       <div>
         <SectionTitle>Cobrancas</SectionTitle>
         <p className="text-sm text-ink-700">Crie cobrancas avulsas e acompanhe status.</p>
+        {!canManage && (
+          <p className="mt-2 text-sm font-semibold text-amber-600">
+            Seu perfil e somente leitura. Voce pode ver, mas nao pode alterar.
+          </p>
+        )}
       </div>
 
-      <Card>
-        <form className="grid gap-4 md:grid-cols-2" onSubmit={handleCreate}>
-          <div className="space-y-2">
-            <Label>Cliente</Label>
-            <Select value={form.customerId} onChange={(e) => setForm({ ...form, customerId: e.target.value })} required>
-              <option value="">Selecione um cliente</option>
-              {customers.map((customer) => (
-                <option key={customer.id} value={customer.id}>
-                  {customer.name}
-                </option>
-              ))}
-            </Select>
-            {fieldErrors.customerId?.[0] && <p className="text-xs text-red-500">{fieldErrors.customerId[0]}</p>}
-          </div>
-          <div className="space-y-2">
-            <Label>Valor (centavos)</Label>
-            <Input
-              type="number"
-              value={form.amountCents}
-              onChange={(e) => setForm({ ...form, amountCents: Number(e.target.value) })}
-              min={1}
-            />
-            {fieldErrors.amountCents?.[0] && <p className="text-xs text-red-500">{fieldErrors.amountCents[0]}</p>}
-          </div>
-          <div className="space-y-2">
-            <Label>Vencimento</Label>
-            <Input type="date" value={form.dueDate} onChange={(e) => setForm({ ...form, dueDate: e.target.value })} />
-            {fieldErrors.dueDate?.[0] && <p className="text-xs text-red-500">{fieldErrors.dueDate[0]}</p>}
-          </div>
-          <div className="space-y-2">
-            <Label>Metodo</Label>
-            <Select
-              value={form.paymentMethod}
-              onChange={(e) => setForm({ ...form, paymentMethod: e.target.value })}
-            >
-              <option value="boleto">Boleto</option>
-              <option value="pix">Pix</option>
-              <option value="card">Cartao</option>
-            </Select>
-            {fieldErrors.paymentMethod?.[0] && <p className="text-xs text-red-500">{fieldErrors.paymentMethod[0]}</p>}
-          </div>
-          <div className="space-y-2 md:col-span-2">
-            <Label>Descricao</Label>
-            <Input
-              value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
-              placeholder="Mensalidade, setup, etc."
-            />
-            {fieldErrors.description?.[0] && <p className="text-xs text-red-500">{fieldErrors.description[0]}</p>}
-          </div>
-          <div className="flex items-end">
-            <Button type="submit" disabled={loading}>
-              {loading ? "Gerando..." : "Criar cobranca"}
-            </Button>
-          </div>
-          {error && <p className="text-sm text-ember-500 md:col-span-2">{error}</p>}
-        </form>
-      </Card>
+      {error && !canManage && (
+        <Card className="border border-amber-400/40 text-amber-700">{error}</Card>
+      )}
+
+      {canManage && (
+        <Card>
+          <form className="grid gap-4 md:grid-cols-2" onSubmit={handleCreate}>
+            <div className="space-y-2">
+              <Label>Cliente</Label>
+              <Select
+                value={form.customerId}
+                onChange={(e) => setForm({ ...form, customerId: e.target.value })}
+                required
+              >
+                <option value="">Selecione um cliente</option>
+                {customers.map((customer) => (
+                  <option key={customer.id} value={customer.id}>
+                    {customer.name}
+                  </option>
+                ))}
+              </Select>
+              {fieldErrors.customerId?.[0] && <p className="text-xs text-red-500">{fieldErrors.customerId[0]}</p>}
+            </div>
+            <div className="space-y-2">
+              <Label>Valor (centavos)</Label>
+              <Input
+                type="number"
+                value={form.amountCents}
+                onChange={(e) => setForm({ ...form, amountCents: Number(e.target.value) })}
+                min={1}
+              />
+              {fieldErrors.amountCents?.[0] && <p className="text-xs text-red-500">{fieldErrors.amountCents[0]}</p>}
+            </div>
+            <div className="space-y-2">
+              <Label>Vencimento</Label>
+              <Input type="date" value={form.dueDate} onChange={(e) => setForm({ ...form, dueDate: e.target.value })} />
+              {fieldErrors.dueDate?.[0] && <p className="text-xs text-red-500">{fieldErrors.dueDate[0]}</p>}
+            </div>
+            <div className="space-y-2">
+              <Label>Metodo</Label>
+              <Select value={form.paymentMethod} onChange={(e) => setForm({ ...form, paymentMethod: e.target.value })}>
+                <option value="boleto">Boleto</option>
+                <option value="pix">Pix</option>
+                <option value="card">Cartao</option>
+              </Select>
+              {fieldErrors.paymentMethod?.[0] && (
+                <p className="text-xs text-red-500">{fieldErrors.paymentMethod[0]}</p>
+              )}
+            </div>
+            <div className="space-y-2 md:col-span-2">
+              <Label>Descricao</Label>
+              <Input
+                value={form.description}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
+                placeholder="Mensalidade, setup, etc."
+              />
+              {fieldErrors.description?.[0] && <p className="text-xs text-red-500">{fieldErrors.description[0]}</p>}
+            </div>
+            <div className="flex items-end">
+              <Button type="submit" disabled={loading}>
+                {loading ? "Gerando..." : "Criar cobranca"}
+              </Button>
+            </div>
+            {error && <p className="text-sm text-ember-500 md:col-span-2">{error}</p>}
+          </form>
+        </Card>
+      )}
 
       <Card>
         <div className="overflow-x-auto">
@@ -229,20 +243,26 @@ export function ChargesPage() {
                     )}
                   </td>
                   <td className="space-x-2">
-                    <button
-                      type="button"
-                      className="text-sm font-semibold text-ink-800"
-                      onClick={() => startEdit(charge)}
-                    >
-                      Editar
-                    </button>
-                    <button
-                      type="button"
-                      className="text-sm font-semibold text-ember-500"
-                      onClick={() => startDelete(charge)}
-                    >
-                      Cancelar
-                    </button>
+                    {canManage ? (
+                      <>
+                        <button
+                          type="button"
+                          className="text-sm font-semibold text-ink-800"
+                          onClick={() => startEdit(charge)}
+                        >
+                          Editar
+                        </button>
+                        <button
+                          type="button"
+                          className="text-sm font-semibold text-ember-500"
+                          onClick={() => startDelete(charge)}
+                        >
+                          Cancelar
+                        </button>
+                      </>
+                    ) : (
+                      <span className="text-xs font-semibold uppercase tracking-[0.2em] text-ink-500">Somente leitura</span>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -252,6 +272,7 @@ export function ChargesPage() {
       </Card>
 
       {typeof document !== "undefined" &&
+        canManage &&
         editOpen &&
         createPortal(
           <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-ink-900/60 px-4 backdrop-blur-sm">
@@ -323,6 +344,7 @@ export function ChargesPage() {
         )}
 
       {typeof document !== "undefined" &&
+        canManage &&
         deleteTarget &&
         createPortal(
           <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-ink-900/60 px-4 backdrop-blur-sm">

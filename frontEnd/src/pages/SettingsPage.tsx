@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { api } from "../lib/api";
 import { Button, Card, Input, Label, SectionTitle, Select } from "../components/ui";
 
-export function SettingsPage() {
+export function SettingsPage({ canManage = true }: { canManage?: boolean }) {
   const [form, setForm] = useState({
     legalName: "",
     bankProvider: "mock",
@@ -103,10 +103,22 @@ export function SettingsPage() {
       <div>
         <SectionTitle>Configurar empresa</SectionTitle>
         <p className="text-sm text-ink-700">Atualize dados, banco principal e credenciais.</p>
+        {!canManage && (
+          <p className="mt-2 text-sm font-semibold text-amber-600">
+            Apenas OWNER e ADMIN podem alterar as configuracoes da empresa.
+          </p>
+        )}
       </div>
 
-      <Card>
-        <form className="grid gap-4 md:grid-cols-2" onSubmit={handleSubmit}>
+      {!canManage ? (
+        <Card>
+          <p className="text-sm text-ink-700">
+            Seu perfil nao tem permissao para editar esta tela.
+          </p>
+        </Card>
+      ) : (
+        <Card>
+          <form className="grid gap-4 md:grid-cols-2" onSubmit={handleSubmit}>
           <div className="space-y-2">
             <Label>Nome legal</Label>
             <Input value={form.legalName} onChange={(e) => setForm({ ...form, legalName: e.target.value })} />
@@ -288,8 +300,9 @@ export function SettingsPage() {
           </div>
           {error && <p className="text-sm text-ember-500 md:col-span-2">{error}</p>}
           {success && <p className="text-sm text-tide-600 md:col-span-2">{success}</p>}
-        </form>
-      </Card>
+          </form>
+        </Card>
+      )}
     </div>
   );
 }

@@ -1,18 +1,21 @@
 import { Router } from "express";
 import { requireAuth } from "../../middleware/auth";
 import { requireTenant } from "../../middleware/tenant";
+import { attachUser, requireRole } from "../../middleware/rbac";
 import { validateBody } from "../../middleware/validate";
 import { z } from "zod";
 import { ChargesController } from "./charges.controller";
 
 export const chargesRoutes = Router();
-chargesRoutes.use(requireAuth, requireTenant);
+chargesRoutes.use(requireAuth, requireTenant, attachUser);
 
-chargesRoutes.get("/", ChargesController.list);
-chargesRoutes.get("/:id", ChargesController.getById);
+// VIEWER pode ver; FINANCE+ pode gerenciar
+chargesRoutes.get("/", requireRole(["OWNER", "ADMIN", "FINANCE", "VIEWER"]), ChargesController.list);
+chargesRoutes.get("/:id", requireRole(["OWNER", "ADMIN", "FINANCE", "VIEWER"]), ChargesController.getById);
 
 chargesRoutes.post(
   "/manual",
+  requireRole(["OWNER", "ADMIN", "FINANCE"]),
   validateBody(
     z.object({
       customerId: z.string().uuid(),
@@ -27,6 +30,7 @@ chargesRoutes.post(
 
 chargesRoutes.patch(
   "/:id",
+  requireRole(["OWNER", "ADMIN", "FINANCE"]),
   validateBody(
     z.object({
       amountCents: z.number().int().positive().optional(),
@@ -37,8 +41,8 @@ chargesRoutes.patch(
   ChargesController.update
 );
 
-chargesRoutes.post("/:id/cancel", ChargesController.cancel);
+chargesRoutes.post("/:id/cancel", requireRole(["OWNER", "ADMIN", "FINANCE"]), ChargesController.cancel);
 
-chargesRoutes.post("/:id/mark-paid", ChargesController.markPaid);
+chargesRoutes.post("/:id/mark-paid", requireRole(["OWNER", "ADMIN", "FINANCE"]), ChargesController.markPaid);
 
-chargesRoutes.post("/:id/notify", ChargesController.notify);
+chargesRoutes.post("/:id/notify", requireRole(["OWNER", "ADMIN", "FINANCE"]), ChargesController.notify);

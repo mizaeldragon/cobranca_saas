@@ -1,18 +1,21 @@
 import { Router } from "express";
 import { requireAuth } from "../../middleware/auth";
 import { requireTenant } from "../../middleware/tenant";
+import { attachUser, requireRole } from "../../middleware/rbac";
 import { validateBody } from "../../middleware/validate";
 import { z } from "zod";
 import { SubscriptionsController } from "./subscriptions.controller";
 
 export const subscriptionsRoutes = Router();
 
-subscriptionsRoutes.use(requireAuth, requireTenant);
+subscriptionsRoutes.use(requireAuth, requireTenant, attachUser);
 
-subscriptionsRoutes.get("/", SubscriptionsController.list);
+// VIEWER pode ver; FINANCE+ pode gerenciar
+subscriptionsRoutes.get("/", requireRole(["OWNER", "ADMIN", "FINANCE", "VIEWER"]), SubscriptionsController.list);
 
 subscriptionsRoutes.post(
   "/",
+  requireRole(["OWNER", "ADMIN", "FINANCE"]),
   validateBody(
     z.object({
       customerId: z.string().uuid(),
@@ -32,6 +35,7 @@ subscriptionsRoutes.post(
 
 subscriptionsRoutes.patch(
   "/:id",
+  requireRole(["OWNER", "ADMIN", "FINANCE"]),
   validateBody(
     z.object({
       amountCents: z.number().int().positive().optional(),
@@ -49,4 +53,4 @@ subscriptionsRoutes.patch(
   SubscriptionsController.update
 );
 
-subscriptionsRoutes.delete("/:id", SubscriptionsController.remove);
+subscriptionsRoutes.delete("/:id", requireRole(["OWNER", "ADMIN", "FINANCE"]), SubscriptionsController.remove);

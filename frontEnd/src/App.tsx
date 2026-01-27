@@ -10,6 +10,7 @@ import { ReportsPage } from "./pages/ReportsPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { clearAuth, getAuth, setAuth, type AuthPayload } from "./lib/auth";
 import { api } from "./lib/api";
+import { canManageCompany, canManageData, canViewReports } from "./lib/rbac";
 import { Button } from "./components/ui";
 
 export default function App() {
@@ -89,14 +90,20 @@ function AppShell({
     };
   }, [auth.companyId]);
 
+  const perms = {
+    manageData: canManageData(auth.role),
+    viewReports: canViewReports(auth.role),
+    manageCompany: canManageCompany(auth.role),
+  };
+
   const nav = [
-    { to: "/", label: "Dashboard" },
-    { to: "/customers", label: "Clientes" },
-    { to: "/charges", label: "Cobrancas" },
-    { to: "/subscriptions", label: "Assinaturas" },
-    { to: "/reports", label: "Relatorios" },
-    { to: "/settings", label: "Empresa" },
-  ];
+    { to: "/", label: "Dashboard", show: true },
+    { to: "/customers", label: "Clientes", show: true },
+    { to: "/charges", label: "Cobrancas", show: true },
+    { to: "/subscriptions", label: "Assinaturas", show: true },
+    { to: "/reports", label: "Relatorios", show: perms.viewReports },
+    { to: "/settings", label: "Empresa", show: perms.manageCompany },
+  ].filter((item) => item.show);
 
   return (
     <div className="min-h-screen">
@@ -146,12 +153,12 @@ function AppShell({
           </div>
 
           <Routes>
-            <Route path="/" element={<DashboardPage />} />
-            <Route path="/customers" element={<CustomersPage />} />
-            <Route path="/charges" element={<ChargesPage />} />
-            <Route path="/subscriptions" element={<SubscriptionsPage />} />
-            <Route path="/reports" element={<ReportsPage />} />
-            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/" element={<DashboardPage canViewReports={perms.viewReports} />} />
+            <Route path="/customers" element={<CustomersPage canManage={perms.manageData} />} />
+            <Route path="/charges" element={<ChargesPage canManage={perms.manageData} />} />
+            <Route path="/subscriptions" element={<SubscriptionsPage canManage={perms.manageData} />} />
+            <Route path="/reports" element={<ReportsPage canView={perms.viewReports} />} />
+            <Route path="/settings" element={<SettingsPage canManage={perms.manageCompany} />} />
             <Route path="*" element={<DashboardPage />} />
           </Routes>
         </main>

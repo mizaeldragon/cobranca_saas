@@ -30,8 +30,18 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   const data = isJson ? await res.json() : null;
 
   if (!res.ok) {
-    const message = data?.error || `Request failed: ${res.status}`;
-    const err = new Error(message) as Error & { fieldErrors?: Record<string, string[]> };
+    const fallback =
+      res.status === 401
+        ? "Sessao expirada. Entre novamente."
+        : res.status === 403
+          ? "Voce nao tem permissao para fazer isso."
+          : `Request failed: ${res.status}`;
+    const message = data?.error || fallback;
+    const err = new Error(message) as Error & {
+      status?: number;
+      fieldErrors?: Record<string, string[]>;
+    };
+    err.status = res.status;
     if (data?.details?.fieldErrors) {
       err.fieldErrors = data.details.fieldErrors;
     }
