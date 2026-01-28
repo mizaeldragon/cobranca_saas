@@ -122,6 +122,16 @@ export const CompaniesService = {
       ]
     );
     if (!rows[0]) throw Object.assign(new Error("Company not found"), { status: 404 });
+    if (data.legalName) {
+      await query(
+        `
+        UPDATE users
+        SET full_name = $2
+        WHERE company_id = $1 AND role = 'OWNER'
+        `,
+        [companyId, data.legalName]
+      );
+    }
     return rows[0];
   },
 };

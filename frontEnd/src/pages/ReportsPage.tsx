@@ -3,13 +3,12 @@ import { api } from "../lib/api";
 import { formatCents } from "../lib/format";
 import { Card, SectionTitle } from "../components/ui";
 
-export function ReportsPage({ canView = true }: { canView?: boolean }) {
+export function ReportsPage() {
   const [summary, setSummary] = useState<any>(null);
   const [mrr, setMrr] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!canView) return;
     let active = true;
     async function load() {
       try {
@@ -26,7 +25,7 @@ export function ReportsPage({ canView = true }: { canView?: boolean }) {
     return () => {
       active = false;
     };
-  }, [canView]);
+  }, []);
 
   return (
     <div className="space-y-6 animate-rise">
@@ -35,12 +34,6 @@ export function ReportsPage({ canView = true }: { canView?: boolean }) {
         <p className="text-sm text-ink-700">Indicadores financeiros para acompanhar sua operacao.</p>
       </div>
 
-      {!canView ? (
-        <Card>
-          <p className="text-sm text-ink-700">Seu perfil nao tem permissao para ver relatorios.</p>
-        </Card>
-      ) : (
-        <>
       {error && <Card className="border border-ember-400/40 text-ember-500">{error}</Card>}
 
       <div className="grid gap-4 md:grid-cols-2">
@@ -74,8 +67,6 @@ export function ReportsPage({ canView = true }: { canView?: boolean }) {
           {!summary?.byMonth?.length && <p className="text-sm text-ink-700">Sem dados ainda.</p>}
         </div>
       </Card>
-        </>
-      )}
     </div>
   );
 }

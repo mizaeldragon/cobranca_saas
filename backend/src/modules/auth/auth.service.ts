@@ -8,6 +8,7 @@ type RegisterInput = {
   legalName: string;
   document: string;
   email: string;
+  phone: string;
   password: string;
   bankProvider: string;
   providerApiKey?: string;
@@ -18,7 +19,7 @@ type UserRow = {
   company_id: string;
   email: string;
   password_hash: string;
-  role: "OWNER" | "ADMIN" | "FINANCE" | "VIEWER";
+  role: "OWNER" | "ADMIN";
 };
 
 export const AuthService = {
@@ -48,11 +49,11 @@ export const AuthService = {
     const user = (
       await query<UserRow>(
         `
-        INSERT INTO users (company_id, full_name, email, password_hash, role)
-        VALUES ($1,$2,$3,$4,'OWNER')
+        INSERT INTO users (company_id, full_name, email, phone, password_hash, role)
+        VALUES ($1,$2,$3,$4,$5,'OWNER')
         RETURNING id, company_id, email, password_hash, role
         `,
-        [company.id, input.legalName, input.email.toLowerCase(), password_hash]
+        [company.id, input.legalName, input.email.toLowerCase(), input.phone, password_hash]
       )
     )[0];
 
@@ -73,10 +74,10 @@ export const AuthService = {
       [input.email.toLowerCase()]
     );
     const user = rows[0];
-    if (!user) throw Object.assign(new Error("Invalid credentials"), { status: 401 });
+    if (!user) throw Object.assign(new Error("Email ou senha invalidos"), { status: 401 });
 
     const ok = await comparePassword(input.password, user.password_hash);
-    if (!ok) throw Object.assign(new Error("Invalid credentials"), { status: 401 });
+    if (!ok) throw Object.assign(new Error("Email ou senha invalidos"), { status: 401 });
 
     const payload = { companyId: user.company_id, email: user.email };
     const accessToken = signAccess(payload);

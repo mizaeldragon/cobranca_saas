@@ -3,6 +3,7 @@ import { requireAuth } from "../../middleware/auth";
 import { requireTenant } from "../../middleware/tenant";
 import { attachUser, requireRole } from "../../middleware/rbac";
 import { validateBody } from "../../middleware/validate";
+import { asyncHandler } from "../../middleware/async";
 import { z } from "zod";
 import { SubscriptionsController } from "./subscriptions.controller";
 
@@ -10,12 +11,12 @@ export const subscriptionsRoutes = Router();
 
 subscriptionsRoutes.use(requireAuth, requireTenant, attachUser);
 
-// VIEWER pode ver; FINANCE+ pode gerenciar
-subscriptionsRoutes.get("/", requireRole(["OWNER", "ADMIN", "FINANCE", "VIEWER"]), SubscriptionsController.list);
+// OWNER/ADMIN
+subscriptionsRoutes.get("/", requireRole(["OWNER", "ADMIN"]), asyncHandler(SubscriptionsController.list));
 
 subscriptionsRoutes.post(
   "/",
-  requireRole(["OWNER", "ADMIN", "FINANCE"]),
+  requireRole(["OWNER", "ADMIN"]),
   validateBody(
     z.object({
       customerId: z.string().uuid(),
@@ -30,12 +31,12 @@ subscriptionsRoutes.post(
       discountDaysBefore: z.number().int().min(0).optional(),
     })
   ),
-  SubscriptionsController.create
+  asyncHandler(SubscriptionsController.create)
 );
 
 subscriptionsRoutes.patch(
   "/:id",
-  requireRole(["OWNER", "ADMIN", "FINANCE"]),
+  requireRole(["OWNER", "ADMIN"]),
   validateBody(
     z.object({
       amountCents: z.number().int().positive().optional(),
@@ -50,7 +51,7 @@ subscriptionsRoutes.patch(
       discountDaysBefore: z.number().int().min(0).optional(),
     })
   ),
-  SubscriptionsController.update
+  asyncHandler(SubscriptionsController.update)
 );
 
-subscriptionsRoutes.delete("/:id", requireRole(["OWNER", "ADMIN", "FINANCE"]), SubscriptionsController.remove);
+subscriptionsRoutes.delete("/:id", requireRole(["OWNER", "ADMIN"]), asyncHandler(SubscriptionsController.remove));

@@ -7,7 +7,7 @@
 -- RBAC (Users + Roles)
 -- =========================
 DO $$ BEGIN
-  CREATE TYPE user_role AS ENUM ('OWNER','ADMIN','FINANCE','VIEWER');
+  CREATE TYPE user_role AS ENUM ('OWNER','ADMIN');
 EXCEPTION WHEN duplicate_object THEN null; END $$;
 
 CREATE TABLE IF NOT EXISTS users (

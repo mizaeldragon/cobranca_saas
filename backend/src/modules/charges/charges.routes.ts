@@ -3,19 +3,20 @@ import { requireAuth } from "../../middleware/auth";
 import { requireTenant } from "../../middleware/tenant";
 import { attachUser, requireRole } from "../../middleware/rbac";
 import { validateBody } from "../../middleware/validate";
+import { asyncHandler } from "../../middleware/async";
 import { z } from "zod";
 import { ChargesController } from "./charges.controller";
 
 export const chargesRoutes = Router();
 chargesRoutes.use(requireAuth, requireTenant, attachUser);
 
-// VIEWER pode ver; FINANCE+ pode gerenciar
-chargesRoutes.get("/", requireRole(["OWNER", "ADMIN", "FINANCE", "VIEWER"]), ChargesController.list);
-chargesRoutes.get("/:id", requireRole(["OWNER", "ADMIN", "FINANCE", "VIEWER"]), ChargesController.getById);
+// OWNER/ADMIN
+chargesRoutes.get("/", requireRole(["OWNER", "ADMIN"]), asyncHandler(ChargesController.list));
+chargesRoutes.get("/:id", requireRole(["OWNER", "ADMIN"]), asyncHandler(ChargesController.getById));
 
 chargesRoutes.post(
   "/manual",
-  requireRole(["OWNER", "ADMIN", "FINANCE"]),
+  requireRole(["OWNER", "ADMIN"]),
   validateBody(
     z.object({
       customerId: z.string().uuid(),
@@ -25,12 +26,12 @@ chargesRoutes.post(
       description: z.string().optional(),
     })
   ),
-  ChargesController.createManual
+  asyncHandler(ChargesController.createManual)
 );
 
 chargesRoutes.patch(
   "/:id",
-  requireRole(["OWNER", "ADMIN", "FINANCE"]),
+  requireRole(["OWNER", "ADMIN"]),
   validateBody(
     z.object({
       amountCents: z.number().int().positive().optional(),
@@ -38,11 +39,11 @@ chargesRoutes.patch(
       paymentMethod: z.enum(["pix", "boleto", "card"]).optional(),
     })
   ),
-  ChargesController.update
+  asyncHandler(ChargesController.update)
 );
 
-chargesRoutes.post("/:id/cancel", requireRole(["OWNER", "ADMIN", "FINANCE"]), ChargesController.cancel);
+chargesRoutes.post("/:id/cancel", requireRole(["OWNER", "ADMIN"]), asyncHandler(ChargesController.cancel));
 
-chargesRoutes.post("/:id/mark-paid", requireRole(["OWNER", "ADMIN", "FINANCE"]), ChargesController.markPaid);
+chargesRoutes.post("/:id/mark-paid", requireRole(["OWNER", "ADMIN"]), asyncHandler(ChargesController.markPaid));
 
-chargesRoutes.post("/:id/notify", requireRole(["OWNER", "ADMIN", "FINANCE"]), ChargesController.notify);
+chargesRoutes.post("/:id/notify", requireRole(["OWNER", "ADMIN"]), asyncHandler(ChargesController.notify));

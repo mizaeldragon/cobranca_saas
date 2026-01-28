@@ -2,6 +2,7 @@ import { Router } from "express";
 import { requireAuth } from "../../middleware/auth";
 import { attachUser, requireRole } from "../../middleware/rbac";
 import { validateBody } from "../../middleware/validate";
+import { asyncHandler } from "../../middleware/async";
 import { z } from "zod";
 import { CompaniesController } from "./companies.controller";
 
@@ -9,8 +10,8 @@ export const companiesRoutes = Router();
 
 companiesRoutes.use(requireAuth, attachUser);
 
-// todos podem ver; só OWNER/ADMIN editam
-companiesRoutes.get("/me", requireRole(["OWNER", "ADMIN", "FINANCE", "VIEWER"]), CompaniesController.me);
+// OWNER/ADMIN
+companiesRoutes.get("/me", requireRole(["OWNER", "ADMIN"]), asyncHandler(CompaniesController.me));
 
 companiesRoutes.patch(
   "/me",
@@ -36,5 +37,5 @@ companiesRoutes.patch(
       smtpSecure: z.boolean().optional(),
     })
   ),
-  CompaniesController.updateMe
+  asyncHandler(CompaniesController.updateMe)
 );

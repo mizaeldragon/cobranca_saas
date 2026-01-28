@@ -4,7 +4,7 @@ import { query } from "../config/db";
 declare global {
   namespace Express {
     interface Request {
-      user?: { id: string; role: "OWNER" | "ADMIN" | "FINANCE" | "VIEWER" };
+      user?: { id: string; role: "OWNER" | "ADMIN" };
     }
   }
 }
@@ -27,7 +27,7 @@ export async function attachUser(req: Request, res: Response, next: NextFunction
   next();
 }
 
-export function requireRole(allowed: Array<"OWNER" | "ADMIN" | "FINANCE" | "VIEWER">) {
+export function requireRole(allowed: Array<"OWNER" | "ADMIN">) {
   return (req: Request, res: Response, next: NextFunction) => {
     const role = req.user?.role;
     if (!role) return res.status(401).json({ error: "Unauthorized" });

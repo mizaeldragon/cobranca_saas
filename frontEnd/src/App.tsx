@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { BrowserRouter, NavLink, Route, Routes } from "react-router-dom";
+import { LogOut, Moon, Settings, Sun } from "lucide-react";
 import { LandingPage } from "./pages/LandingPage";
 import { LoginPage } from "./pages/LoginPage";
 import { DashboardPage } from "./pages/DashboardPage";
@@ -8,10 +9,9 @@ import { ChargesPage } from "./pages/ChargesPage";
 import { SubscriptionsPage } from "./pages/SubscriptionsPage";
 import { ReportsPage } from "./pages/ReportsPage";
 import { SettingsPage } from "./pages/SettingsPage";
+import { UsersPage } from "./pages/UsersPage";
 import { clearAuth, getAuth, setAuth, type AuthPayload } from "./lib/auth";
 import { api } from "./lib/api";
-import { canManageCompany, canManageData, canViewReports } from "./lib/rbac";
-import { Button } from "./components/ui";
 
 export default function App() {
   const [auth, setAuthState] = useState<AuthPayload | null>(() => getAuth());
@@ -76,6 +76,7 @@ function AppShell({
   onLogout: () => void;
 }) {
   const [company, setCompany] = useState<any>(null);
+  const [profileOpen, setProfileOpen] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -90,20 +91,22 @@ function AppShell({
     };
   }, [auth.companyId]);
 
-  const perms = {
-    manageData: canManageData(auth.role),
-    viewReports: canViewReports(auth.role),
-    manageCompany: canManageCompany(auth.role),
-  };
-
   const nav = [
-    { to: "/", label: "Dashboard", show: true },
-    { to: "/customers", label: "Clientes", show: true },
-    { to: "/charges", label: "Cobrancas", show: true },
-    { to: "/subscriptions", label: "Assinaturas", show: true },
-    { to: "/reports", label: "Relatorios", show: perms.viewReports },
-    { to: "/settings", label: "Empresa", show: perms.manageCompany },
-  ].filter((item) => item.show);
+    { to: "/", label: "Dashboard" },
+    { to: "/customers", label: "Clientes" },
+    { to: "/charges", label: "Cobrancas" },
+    { to: "/subscriptions", label: "Assinaturas" },
+    { to: "/reports", label: "Relatorios" },
+    { to: "/users", label: "Usuarios", ownerOnly: true },
+  ];
+  const visibleNav = nav.filter((item) => !item.ownerOnly || auth.role === "OWNER");
+  const companyName = company?.legal_name ?? "Sua empresa";
+  const initials = companyName
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part: string) => part[0]?.toUpperCase())
+    .join("");
 
   return (
     <div className="min-h-screen">
@@ -111,10 +114,10 @@ function AppShell({
         <aside className="glass flex flex-col gap-6 rounded-3xl p-6 md:w-64 md:shrink-0">
           <div className="space-y-1">
             <p className="text-xs font-semibold uppercase tracking-[0.4em] text-ink-700">CobrancaPro</p>
-            <p className="font-serif text-2xl text-ink-900">{company?.legal_name ?? "Sua empresa"}</p>
+            <p className="font-serif text-2xl text-ink-900">{companyName}</p>
           </div>
           <nav className="flex flex-row gap-2 overflow-x-auto md:flex-col">
-            {nav.map((item) => (
+            {visibleNav.map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}
@@ -129,36 +132,73 @@ function AppShell({
               </NavLink>
             ))}
           </nav>
-          <div className="mt-auto flex flex-col gap-2">
-            <Button variant="outline" onClick={onLogout}>
-              Sair
-            </Button>
-            <p className="text-xs text-ink-700">Role: {auth.role}</p>
-          </div>
         </aside>
 
         <main className="flex-1 space-y-6">
           <div className="flex items-center justify-end">
-            <button
-              className={`rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] ${
-                theme === "dark"
-                  ? "border-slate-600 bg-slate-900/70 text-slate-100"
-                  : "border-slate-300 bg-white/80 text-slate-800"
-              }`}
-              type="button"
-              onClick={onToggleTheme}
-            >
-              {theme === "light" ? "Modo escuro" : "Modo claro"}
-            </button>
+            <div className="relative">
+              <button
+                type="button"
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-ink-700/10 bg-white/80 shadow-sm transition hover:bg-white"
+                onClick={() => setProfileOpen((v) => !v)}
+                aria-label="Abrir menu de perfil"
+              >
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-ink-900 text-[10px] font-bold text-sand-50">
+                  {initials || "CP"}
+                </span>
+              </button>
+
+              {profileOpen && (
+                <div className="absolute right-0 top-full z-20 mt-3 w-72 overflow-hidden rounded-2xl border border-ink-700/10 bg-white shadow-[0_20px_60px_-40px_rgba(15,23,42,0.6)]">
+                  <div className="flex items-center gap-3 border-b border-ink-700/10 px-4 py-4">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-ink-900 text-sm font-semibold text-sand-50">
+                      {initials || "CP"}
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-ink-900">{companyName}</p>
+                      <p className="text-xs text-ink-600">Role: {auth.role}</p>
+                    </div>
+                  </div>
+                  <NavLink
+                    to="/settings"
+                    className="flex items-center gap-2 px-4 py-3 text-sm font-semibold text-ink-800 hover:bg-ink-700/10"
+                    onClick={() => setProfileOpen(false)}
+                  >
+                    <Settings className="h-4 w-4" />
+                    Settings
+                  </NavLink>
+                  <button
+                    type="button"
+                    className="flex w-full items-center gap-2 px-4 py-3 text-sm font-semibold text-ink-800 hover:bg-ink-700/10"
+                    onClick={() => {
+                      onToggleTheme();
+                      setProfileOpen(false);
+                    }}
+                  >
+                    {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                    {theme === "dark" ? "Modo claro" : "Modo escuro"}
+                  </button>
+                  <button
+                    type="button"
+                    className="flex w-full items-center gap-2 px-4 py-3 text-sm font-semibold text-ember-500 hover:bg-ember-400/10"
+                    onClick={onLogout}
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Sair
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
           <Routes>
-            <Route path="/" element={<DashboardPage canViewReports={perms.viewReports} />} />
-            <Route path="/customers" element={<CustomersPage canManage={perms.manageData} />} />
-            <Route path="/charges" element={<ChargesPage canManage={perms.manageData} />} />
-            <Route path="/subscriptions" element={<SubscriptionsPage canManage={perms.manageData} />} />
-            <Route path="/reports" element={<ReportsPage canView={perms.viewReports} />} />
-            <Route path="/settings" element={<SettingsPage canManage={perms.manageCompany} />} />
+            <Route path="/" element={<DashboardPage />} />
+            <Route path="/customers" element={<CustomersPage />} />
+            <Route path="/charges" element={<ChargesPage />} />
+            <Route path="/subscriptions" element={<SubscriptionsPage />} />
+            <Route path="/reports" element={<ReportsPage />} />
+            <Route path="/users" element={auth.role === "OWNER" ? <UsersPage /> : <DashboardPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
             <Route path="*" element={<DashboardPage />} />
           </Routes>
         </main>
@@ -166,3 +206,4 @@ function AppShell({
     </div>
   );
 }
+

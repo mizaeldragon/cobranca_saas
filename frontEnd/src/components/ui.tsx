@@ -69,3 +69,54 @@ export function Badge({ children, tone = "tide" }: PropsWithChildren<{ tone?: "t
   };
   return <span className={`badge ${tones[tone]}`}>{children}</span>;
 }
+
+export function PaginationBar({
+  page,
+  pageSize,
+  total,
+  onPrev,
+  onNext,
+}: {
+  page: number;
+  pageSize: number;
+  total: number;
+  onPrev: () => void;
+  onNext: () => void;
+}) {
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const start = total === 0 ? 0 : (page - 1) * pageSize + 1;
+  const end = total === 0 ? 0 : Math.min(total, page * pageSize);
+
+  return (
+    <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs text-ink-700">
+      <span>
+        Mostrando {start} - {end} de {total}
+      </span>
+      <div className="flex items-center gap-2">
+        <span>
+          Pagina {page} de {totalPages}
+        </span>
+        <div className="flex items-center gap-1 rounded-full border border-ink-700/20 bg-white/70 p-1 shadow-sm">
+          <button
+            type="button"
+            className="rounded-full px-4 py-2 text-sm font-semibold text-ink-700 transition hover:bg-ink-700/10 disabled:opacity-50"
+            onClick={onPrev}
+            disabled={page <= 1}
+            aria-label="Pagina anterior"
+          >
+            ‹
+          </button>
+          <button
+            type="button"
+            className="rounded-full px-4 py-2 text-sm font-semibold text-ink-700 transition hover:bg-ink-700/10 disabled:opacity-50"
+            onClick={onNext}
+            disabled={page >= totalPages}
+            aria-label="Proxima pagina"
+          >
+            ›
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -2,7 +2,7 @@ import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../lib/api";
 import type { AuthPayload } from "../lib/auth";
-import { maskCpfCnpj, onlyDigits } from "../lib/masks";
+import { maskCpfCnpj, maskPhone, onlyDigits } from "../lib/masks";
 
 type LoginPageProps = {
   onAuth: (payload: AuthPayload) => void;
@@ -20,6 +20,7 @@ export function LoginPage({ onAuth, theme, onToggleTheme }: LoginPageProps) {
     legalName: "",
     document: "",
     email: "",
+    phone: "",
     password: "",
     bankProvider: "mock",
     providerApiKey: "",
@@ -39,6 +40,7 @@ export function LoginPage({ onAuth, theme, onToggleTheme }: LoginPageProps) {
           legalName: form.legalName,
           document: onlyDigits(form.document),
           email: form.email,
+          phone: onlyDigits(form.phone),
           password: form.password,
           bankProvider: form.bankProvider,
           providerApiKey: form.providerApiKey || undefined,
@@ -137,6 +139,17 @@ export function LoginPage({ onAuth, theme, onToggleTheme }: LoginPageProps) {
                   {fieldErrors.document?.[0] && (
                     <span className="text-xs text-red-500">{fieldErrors.document[0]}</span>
                   )}
+                </label>
+                <label className="grid gap-2 text-xs font-semibold uppercase tracking-[0.2em]">
+                  Telefone
+                  <input
+                    className={inputClass}
+                    value={form.phone}
+                    onChange={(e) => setForm({ ...form, phone: maskPhone(e.target.value) })}
+                    placeholder="(00) 00000-0000"
+                    required
+                  />
+                  {fieldErrors.phone?.[0] && <span className="text-xs text-red-500">{fieldErrors.phone[0]}</span>}
                 </label>
               </>
             )}

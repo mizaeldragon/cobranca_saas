@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../lib/api";
 import { formatCents, formatDate } from "../lib/format";
-import { Badge, Card, SectionTitle } from "../components/ui";
+import { Badge, Card, PaginationBar, SectionTitle } from "../components/ui";
 
 type Summary = {
   totals: {
@@ -14,22 +14,26 @@ type Summary = {
   };
 };
 
-export function DashboardPage({ canViewReports = true }: { canViewReports?: boolean }) {
+export function DashboardPage() {
   const [summary, setSummary] = useState<Summary | null>(null);
   const [charges, setCharges] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+  const [total, setTotal] = useState(0);
 
   useEffect(() => {
     let active = true;
     async function load() {
       try {
         const [summaryData, chargesData] = await Promise.all([
-          canViewReports ? api.summary("") : Promise.resolve(null),
-          api.listCharges("?page=1&pageSize=5"),
+          api.summary(""),
+          api.listCharges(`?page=${page}&pageSize=${pageSize}`),
         ]);
         if (!active) return;
-        setSummary((summaryData as Summary | null) ?? null);
+        setSummary(summaryData as Summary);
         setCharges((chargesData as any)?.items ?? chargesData ?? []);
+        setTotal(Number((chargesData as any)?.total ?? (Array.isArray(chargesData) ? chargesData.length : 0)));
       } catch (err: any) {
         if (!active) return;
         setError(err?.message ?? "Failed to load dashboard");
@@ -39,7 +43,7 @@ export function DashboardPage({ canViewReports = true }: { canViewReports?: bool
     return () => {
       active = false;
     };
-  }, [canViewReports]);
+  }, [page]);
 
   return (
     <div className="space-y-6 animate-rise">
@@ -110,6 +114,13 @@ export function DashboardPage({ canViewReports = true }: { canViewReports?: bool
             </tbody>
           </table>
         </div>
+        <PaginationBar
+          page={page}
+          pageSize={pageSize}
+          total={total}
+          onPrev={() => setPage((p) => Math.max(1, p - 1))}
+          onNext={() => setPage((p) => Math.min(Math.max(1, Math.ceil(total / pageSize)), p + 1))}
+        />
       </Card>
     </div>
   );

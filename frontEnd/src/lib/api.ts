@@ -58,6 +58,7 @@ export const api = {
     legalName: string;
     document: string;
     email: string;
+    phone: string;
     password: string;
     bankProvider: string;
     providerApiKey?: string;
@@ -103,4 +104,18 @@ export const api = {
 
   summary: (query = "") => request(`/reports/summary${query}`),
   mrr: () => request("/reports/mrr"),
+
+  listUsers: (query = "") => request(`/users${query}`),
+  createUser: (payload: { fullName: string; email: string; phone: string; password: string; role: "ADMIN" }) =>
+    request("/users", { method: "POST", body: payload }),
+  updateUser: (id: string, payload: { fullName?: string; role?: "ADMIN" | "OWNER"; active?: boolean }) =>
+    request(`/users/${id}`, { method: "PATCH", body: payload }),
+  getMe: () => request("/users/me"),
+  updateMe: (payload: {
+    fullName?: string;
+    email?: string;
+    phone?: string;
+    currentPassword?: string;
+    newPassword?: string;
+  }) => request("/users/me", { method: "PATCH", body: payload }),
 };

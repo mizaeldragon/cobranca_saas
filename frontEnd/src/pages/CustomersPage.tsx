@@ -2,12 +2,15 @@ import { useEffect, useState, type FormEvent } from "react";
 import { createPortal } from "react-dom";
 import { api } from "../lib/api";
 import { maskCpfCnpj, maskPhone, onlyDigits } from "../lib/masks";
-import { Card, Input, Label, Button, SectionTitle } from "../components/ui";
+import { Card, Input, Label, Button, PaginationBar, SectionTitle } from "../components/ui";
 
-export function CustomersPage({ canManage = true }: { canManage?: boolean }) {
+export function CustomersPage() {
   const [items, setItems] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+  const [total, setTotal] = useState(0);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<any | null>(null);
@@ -34,10 +37,11 @@ export function CustomersPage({ canManage = true }: { canManage?: boolean }) {
     zip: "",
   });
 
-  async function load() {
+  async function load(nextPage = page, nextPageSize = pageSize) {
     try {
-      const data = (await api.listCustomers("?page=1&pageSize=20")) as any;
+      const data = (await api.listCustomers(`?page=${nextPage}&pageSize=${nextPageSize}`)) as any;
       setItems(data.items ?? data ?? []);
+      setTotal(Number(data.total ?? (Array.isArray(data) ? data.length : 0)));
     } catch (err: any) {
       setError(err?.message ?? "Failed to load customers");
     }
@@ -45,7 +49,7 @@ export function CustomersPage({ canManage = true }: { canManage?: boolean }) {
 
   useEffect(() => {
     load();
-  }, []);
+  }, [page]);
 
   async function handleCreate(e: FormEvent) {
     e.preventDefault();
@@ -65,7 +69,8 @@ export function CustomersPage({ canManage = true }: { canManage?: boolean }) {
       };
       await api.createCustomer(payload);
       setForm({ name: "", document: "", email: "", phone: "", addressLine1: "", city: "", state: "", zip: "" });
-      await load();
+      setPage(1);
+      await load(1, pageSize);
     } catch (err: any) {
       setError(err?.message ?? "Failed to create customer");
       if (err?.fieldErrors) setFieldErrors(err.fieldErrors);
@@ -147,79 +152,66 @@ export function CustomersPage({ canManage = true }: { canManage?: boolean }) {
       <div>
         <SectionTitle>Clientes</SectionTitle>
         <p className="text-sm text-ink-700">Cadastre e acompanhe quem recebe suas cobrancas.</p>
-        {!canManage && (
-          <p className="mt-2 text-sm font-semibold text-amber-600">
-            Seu perfil e somente leitura. Voce pode ver, mas nao pode alterar.
-          </p>
-        )}
       </div>
 
-      {error && !canManage && (
-        <Card className="border border-amber-400/40 text-amber-700">{error}</Card>
-      )}
-
-      {canManage && (
-        <Card>
-          <form className="grid gap-4 md:grid-cols-2" onSubmit={handleCreate}>
-            <div className="space-y-2">
-              <Label>Nome</Label>
-              <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
-              {fieldErrors.name?.[0] && <p className="text-xs text-red-500">{fieldErrors.name[0]}</p>}
-            </div>
-            <div className="space-y-2">
-              <Label>Documento</Label>
-              <Input
-                value={form.document}
-                onChange={(e) => setForm({ ...form, document: maskCpfCnpj(e.target.value) })}
-                required
-              />
-              {fieldErrors.document?.[0] && <p className="text-xs text-red-500">{fieldErrors.document[0]}</p>}
-            </div>
-            <div className="space-y-2">
-              <Label>Email</Label>
-              <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-              {fieldErrors.email?.[0] && <p className="text-xs text-red-500">{fieldErrors.email[0]}</p>}
-            </div>
-            <div className="space-y-2">
-              <Label>Telefone</Label>
-              <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: maskPhone(e.target.value) })} />
-              {fieldErrors.phone?.[0] && <p className="text-xs text-red-500">{fieldErrors.phone[0]}</p>}
-            </div>
-            <div className="space-y-2 md:col-span-2">
-              <Label>Endereco</Label>
-              <Input
-                value={form.addressLine1}
-                onChange={(e) => setForm({ ...form, addressLine1: e.target.value })}
-                placeholder="Rua e numero"
-              />
-              {fieldErrors.addressLine1?.[0] && (
-                <p className="text-xs text-red-500">{fieldErrors.addressLine1[0]}</p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label>Cidade</Label>
-              <Input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
-              {fieldErrors.city?.[0] && <p className="text-xs text-red-500">{fieldErrors.city[0]}</p>}
-            </div>
-            <div className="space-y-2">
-              <Label>UF</Label>
-              <Input value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value })} />
-              {fieldErrors.state?.[0] && <p className="text-xs text-red-500">{fieldErrors.state[0]}</p>}
-            </div>
-            <div className="space-y-2">
-              <Label>CEP</Label>
-              <Input value={form.zip} onChange={(e) => setForm({ ...form, zip: e.target.value })} />
-              {fieldErrors.zip?.[0] && <p className="text-xs text-red-500">{fieldErrors.zip[0]}</p>}
-            </div>
-            <div className="flex items-end">
-              <Button type="submit" disabled={loading}>
-                {loading ? "Salvando..." : "Adicionar cliente"}
-              </Button>
-            </div>
-            {error && <p className="text-sm text-ember-500 md:col-span-2">{error}</p>}
-          </form>
-        </Card>
-      )}
+      <Card>
+        <form className="grid gap-4 md:grid-cols-2" onSubmit={handleCreate}>
+          <div className="space-y-2">
+            <Label>Nome</Label>
+            <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+            {fieldErrors.name?.[0] && <p className="text-xs text-red-500">{fieldErrors.name[0]}</p>}
+          </div>
+          <div className="space-y-2">
+            <Label>Documento</Label>
+            <Input
+              value={form.document}
+              onChange={(e) => setForm({ ...form, document: maskCpfCnpj(e.target.value) })}
+              required
+            />
+            {fieldErrors.document?.[0] && <p className="text-xs text-red-500">{fieldErrors.document[0]}</p>}
+          </div>
+          <div className="space-y-2">
+            <Label>Email</Label>
+            <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+            {fieldErrors.email?.[0] && <p className="text-xs text-red-500">{fieldErrors.email[0]}</p>}
+          </div>
+          <div className="space-y-2">
+            <Label>Telefone</Label>
+            <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: maskPhone(e.target.value) })} />
+            {fieldErrors.phone?.[0] && <p className="text-xs text-red-500">{fieldErrors.phone[0]}</p>}
+          </div>
+          <div className="space-y-2 md:col-span-2">
+            <Label>Endereco</Label>
+            <Input
+              value={form.addressLine1}
+              onChange={(e) => setForm({ ...form, addressLine1: e.target.value })}
+              placeholder="Rua e numero"
+            />
+            {fieldErrors.addressLine1?.[0] && <p className="text-xs text-red-500">{fieldErrors.addressLine1[0]}</p>}
+          </div>
+          <div className="space-y-2">
+            <Label>Cidade</Label>
+            <Input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
+            {fieldErrors.city?.[0] && <p className="text-xs text-red-500">{fieldErrors.city[0]}</p>}
+          </div>
+          <div className="space-y-2">
+            <Label>UF</Label>
+            <Input value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value })} />
+            {fieldErrors.state?.[0] && <p className="text-xs text-red-500">{fieldErrors.state[0]}</p>}
+          </div>
+          <div className="space-y-2">
+            <Label>CEP</Label>
+            <Input value={form.zip} onChange={(e) => setForm({ ...form, zip: e.target.value })} />
+            {fieldErrors.zip?.[0] && <p className="text-xs text-red-500">{fieldErrors.zip[0]}</p>}
+          </div>
+          <div className="flex items-end">
+            <Button type="submit" disabled={loading}>
+              {loading ? "Salvando..." : "Adicionar cliente"}
+            </Button>
+          </div>
+          {error && <p className="text-sm text-ember-500 md:col-span-2">{error}</p>}
+        </form>
+      </Card>
 
       <Card>
         <div className="overflow-x-auto">
@@ -248,36 +240,36 @@ export function CustomersPage({ canManage = true }: { canManage?: boolean }) {
                   <td>{customer.email ?? "-"}</td>
                   <td>{customer.phone ?? "-"}</td>
                   <td className="space-x-2">
-                    {canManage ? (
-                      <>
-                        <button
-                          type="button"
-                          className="text-sm font-semibold text-ink-800"
-                          onClick={() => startEdit(customer)}
-                        >
-                          Editar
-                        </button>
-                        <button
-                          type="button"
-                          className="text-sm font-semibold text-ember-500"
-                          onClick={() => startDelete(customer)}
-                        >
-                          Excluir
-                        </button>
-                      </>
-                    ) : (
-                      <span className="text-xs font-semibold uppercase tracking-[0.2em] text-ink-500">Somente leitura</span>
-                    )}
+                    <button
+                      type="button"
+                      className="text-sm font-semibold text-ink-800"
+                      onClick={() => startEdit(customer)}
+                    >
+                      Editar
+                    </button>
+                    <button
+                      type="button"
+                      className="text-sm font-semibold text-ember-500"
+                      onClick={() => startDelete(customer)}
+                    >
+                      Excluir
+                    </button>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+        <PaginationBar
+          page={page}
+          pageSize={pageSize}
+          total={total}
+          onPrev={() => setPage((p) => Math.max(1, p - 1))}
+          onNext={() => setPage((p) => Math.min(Math.max(1, Math.ceil(total / pageSize)), p + 1))}
+        />
       </Card>
 
       {typeof document !== "undefined" &&
-        canManage &&
         editOpen &&
         createPortal(
           <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-ink-900/60 px-4 backdrop-blur-sm">
@@ -367,7 +359,6 @@ export function CustomersPage({ canManage = true }: { canManage?: boolean }) {
         )}
 
       {typeof document !== "undefined" &&
-        canManage &&
         deleteTarget &&
         createPortal(
           <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-ink-900/60 px-4 backdrop-blur-sm">

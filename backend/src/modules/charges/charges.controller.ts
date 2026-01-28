@@ -4,8 +4,8 @@ import { ChargesService } from "./charges.service";
 export const ChargesController = {
   async list(req: Request, res: Response) {
     const companyId = req.auth!.companyId;
-    const items = await ChargesService.list(companyId);
-    res.json(items);
+    const result = await ChargesService.listPaged(companyId, req.query);
+    res.json(result);
   },
 
   async getById(req: Request, res: Response) {
