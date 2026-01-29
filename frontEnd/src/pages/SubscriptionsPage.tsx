@@ -207,7 +207,7 @@ export function SubscriptionsPage() {
 
       <Card>
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
+          <table className="table-premium w-full text-left text-sm">
             <thead className="text-xs uppercase tracking-[0.2em] text-ink-700">
               <tr>
                 <th className="py-2">Cliente</th>

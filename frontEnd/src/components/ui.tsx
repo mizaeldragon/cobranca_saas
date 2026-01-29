@@ -6,7 +6,7 @@ import type {
 } from "react";
 
 export function Card({ children, className = "" }: PropsWithChildren<{ className?: string }>) {
-  return <div className={`glass rounded-3xl p-6 ${className}`}>{children}</div>;
+  return <div className={`glass panel-premium rounded-3xl p-6 ${className}`}>{children}</div>;
 }
 
 export function SectionTitle({ children }: PropsWithChildren) {
@@ -21,7 +21,7 @@ export function Input(props: InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
       {...props}
-      className={`w-full rounded-2xl border border-ink-700/10 bg-white/80 px-4 py-3 text-sm text-ink-900 shadow-sm outline-none transition focus:border-tide-500 focus:ring-2 focus:ring-tide-400/30 ${
+      className={`w-full rounded-2xl border border-ink-700/10 bg-white/90 px-4 py-3 text-sm text-ink-900 shadow-sm outline-none transition focus:border-ember-400 focus:ring-2 focus:ring-ember-400/30 ${
         props.className ?? ""
       }`}
     />
@@ -32,7 +32,7 @@ export function Select(props: SelectHTMLAttributes<HTMLSelectElement>) {
   return (
     <select
       {...props}
-      className={`w-full rounded-2xl border border-ink-700/10 bg-white/80 px-4 py-3 text-sm text-ink-900 shadow-sm outline-none transition focus:border-tide-500 focus:ring-2 focus:ring-tide-400/30 ${
+      className={`w-full rounded-2xl border border-ink-700/10 bg-white/90 px-4 py-3 text-sm text-ink-900 shadow-sm outline-none transition focus:border-ember-400 focus:ring-2 focus:ring-ember-400/30 ${
         props.className ?? ""
       }`}
     />
@@ -47,11 +47,13 @@ export function Button({
 }: PropsWithChildren<
   ButtonHTMLAttributes<HTMLButtonElement> & { variant?: "primary" | "ghost" | "outline" }
 >) {
-  const base = "rounded-2xl px-5 py-3 text-sm font-semibold transition";
+  const base = "rounded-2xl px-5 py-3 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember-400/40";
   const styles = {
-    primary: "bg-ink-900 text-sand-50 hover:bg-ink-800 shadow-glow",
+    primary:
+      "bg-ink-900 text-sand-50 hover:-translate-y-[1px] hover:bg-ink-800 shadow-glow shadow-[0_18px_40px_-26px_rgba(17,34,78,0.5)]",
     ghost: "bg-transparent text-ink-800 hover:bg-ink-700/10",
-    outline: "border border-ink-700/20 text-ink-800 hover:bg-ink-700/10",
+    outline:
+      "border border-ink-700/20 text-ink-800 hover:bg-ink-700/10 hover:-translate-y-[1px] shadow-[0_10px_24px_-20px_rgba(17,34,78,0.4)]",
   } as const;
 
   return (
@@ -63,9 +65,9 @@ export function Button({
 
 export function Badge({ children, tone = "tide" }: PropsWithChildren<{ tone?: "tide" | "ember" | "slate" }>) {
   const tones = {
-    tide: "bg-tide-400/20 text-tide-600",
-    ember: "bg-ember-400/20 text-ember-500",
-    slate: "bg-ink-700/10 text-ink-700",
+    tide: "badge-soft",
+    ember: "bg-ember-400/20 text-ember-500 border border-ember-400/30",
+    slate: "bg-ink-700/10 text-ink-700 border border-ink-700/15",
   };
   return <span className={`badge ${tones[tone]}`}>{children}</span>;
 }

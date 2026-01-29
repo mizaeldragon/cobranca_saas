@@ -4,27 +4,27 @@ import { useState } from "react";
 // Ícones SVG simples para não depender de bibliotecas externas
 const Icons = {
   Check: () => (
-    <svg className="h-5 w-5 flex-shrink-0 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <svg className="h-5 w-5 flex-shrink-0 text-ember-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
     </svg>
   ),
   Star: () => (
-    <svg className="h-5 w-5 text-yellow-400 fill-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+    <svg className="h-5 w-5 text-ember-400 fill-ember-400" viewBox="0 0 20 20" fill="currentColor">
       <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
     </svg>
   ),
   Zap: () => (
-    <svg className="h-6 w-6 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <svg className="h-6 w-6 text-ember-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
     </svg>
   ),
   Chart: () => (
-    <svg className="h-6 w-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <svg className="h-6 w-6 text-ink-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z" />
     </svg>
   ),
   Shield: () => (
-    <svg className="h-6 w-6 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <svg className="h-6 w-6 text-ink-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
     </svg>
   ),
@@ -59,8 +59,8 @@ export function LandingPage({ theme, onToggleTheme }: LandingPageProps) {
       <div
         className={`pointer-events-none absolute inset-0 transition-opacity duration-500 ${
           isDark
-            ? "bg-[radial-gradient(900px_380px_at_10%_-10%,rgba(56,189,248,0.2),transparent_55%),radial-gradient(900px_380px_at_85%_0%,rgba(249,115,22,0.18),transparent_55%),linear-gradient(180deg,#0b0f1a_0%,#0f172a_100%)] opacity-100"
-            : "bg-[radial-gradient(1000px_420px_at_15%_-10%,rgba(45,182,163,0.28),transparent_55%),radial-gradient(900px_420px_at_90%_0%,rgba(245,158,11,0.18),transparent_55%),linear-gradient(180deg,#f8f6f2_0%,#efe8dc_100%)] opacity-100"
+            ? "bg-[radial-gradient(900px_380px_at_10%_-10%,rgba(248,123,27,0.16),transparent_55%),radial-gradient(900px_380px_at_85%_0%,rgba(17,34,78,0.35),transparent_55%),linear-gradient(180deg,#0b1533_0%,#11224e_100%)] opacity-100"
+            : "bg-[radial-gradient(1000px_420px_at_15%_-10%,rgba(248,123,27,0.18),transparent_55%),radial-gradient(900px_420px_at_90%_0%,rgba(17,34,78,0.18),transparent_55%),linear-gradient(180deg,#f7f7f7_0%,#f0f0f0_100%)] opacity-100"
         }`}
       />
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(17,24,39,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(17,24,39,0.04)_1px,transparent_1px)] bg-[length:32px_32px]" />
@@ -90,13 +90,13 @@ export function LandingPage({ theme, onToggleTheme }: LandingPageProps) {
               type="button"
               onClick={onToggleTheme}
             >
-              {isDark ? "☀️ Claro" : "🌙 Escuro"}
+              {isDark ? "Modo claro" : "Modo escuro"}
             </button>
             <Link
               className={`group flex items-center gap-2 rounded-full border px-6 py-2 text-sm font-bold shadow-lg transition-all hover:-translate-y-0.5 ${
                 isDark
-                  ? "border-indigo-500/30 bg-indigo-600 text-white hover:bg-indigo-500 hover:shadow-indigo-500/25"
-                  : "border-slate-900 bg-slate-900 text-white hover:bg-slate-800 hover:shadow-xl"
+                  ? "border-ember-400/30 bg-ember-500 text-white hover:bg-ember-400 hover:shadow-ember-400/25"
+                  : "border-ink-900 bg-ink-900 text-white hover:bg-ink-800 hover:shadow-xl"
               }`}
               to="/login"
             >
@@ -109,15 +109,15 @@ export function LandingPage({ theme, onToggleTheme }: LandingPageProps) {
         <section className="grid gap-8 pt-10 text-center md:pt-16 lg:text-left lg:grid-cols-2 lg:gap-12 items-center">
           <div className="space-y-8">
             <div className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium ${
-               isDark ? "border-amber-500/30 bg-amber-500/10 text-amber-300" : "border-amber-600/30 bg-amber-100 text-amber-700"
+               isDark ? "border-ember-500/30 bg-ember-500/10 text-ember-300" : "border-ember-500/40 bg-ember-400/10 text-ember-600"
             }`}>
-              <span className="flex h-2 w-2 rounded-full bg-amber-500 animate-pulse"></span>
+              <span className="flex h-2 w-2 rounded-full bg-ember-500 animate-pulse"></span>
               Nova Integração com Cora e Asaas V3 disponível
             </div>
             
-            <h1 className="font-serif text-5xl font-medium leading-[1.1] tracking-tight sm:text-6xl md:text-7xl">
+            <h1 className="font-serif text-5xl font-medium leading-[1.05] tracking-tight sm:text-6xl md:text-7xl">
               Pare de fazer cobranças <br/>
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-ember-500 to-ink-900">
                 manualmente.
               </span>
             </h1>
@@ -130,7 +130,7 @@ export function LandingPage({ theme, onToggleTheme }: LandingPageProps) {
             <div className="flex flex-col gap-4 sm:flex-row sm:justify-center lg:justify-start">
               <Link
                 to="/register"
-                className="inline-flex h-12 items-center justify-center rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 px-8 text-sm font-bold text-white shadow-[0_0_40px_-10px_rgba(79,70,229,0.5)] transition-all hover:scale-105 hover:shadow-[0_0_60px_-15px_rgba(79,70,229,0.6)]"
+                className="inline-flex h-12 items-center justify-center rounded-full bg-gradient-to-r from-ember-500 to-ember-400 px-8 text-sm font-bold text-white shadow-[0_0_40px_-10px_rgba(248,123,27,0.5)] transition-all hover:scale-105 hover:shadow-[0_0_60px_-15px_rgba(248,123,27,0.6)]"
               >
                 Testar Grátis por 7 dias
                 <Icons.ArrowRight />
@@ -146,13 +146,13 @@ export function LandingPage({ theme, onToggleTheme }: LandingPageProps) {
 
           {/* Hero Visual/Image Placeholder */}
           <div className={`relative aspect-square md:aspect-video lg:aspect-square rounded-3xl border p-4 shadow-2xl ${
-            isDark ? "border-slate-800 bg-slate-900/50" : "border-slate-200 bg-white/50"
+            isDark ? "border-slate-800 bg-slate-900/50" : "border-slate-200 bg-white/60"
           }`}>
              {/* Abstract UI Representation */}
              <div className={`absolute inset-0 rounded-3xl overflow-hidden opacity-50 ${
                 isDark 
-                ? "bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-blue-500/10" 
-                : "bg-gradient-to-br from-indigo-100 via-purple-100 to-blue-50"
+                ? "bg-gradient-to-br from-ember-500/10 via-ink-900/10 to-ember-400/10" 
+                : "bg-gradient-to-br from-ember-100 via-white to-slate-50"
              }`} />
              <div className="relative h-full w-full rounded-xl border border-dashed border-slate-400/30 flex items-center justify-center flex-col gap-4">
                 <div className="w-3/4 h-8 rounded-lg bg-slate-500/20 animate-pulse"></div>
@@ -163,12 +163,12 @@ export function LandingPage({ theme, onToggleTheme }: LandingPageProps) {
                 <div className={`absolute -right-4 top-10 flex items-center gap-3 rounded-xl border p-3 shadow-xl backdrop-blur-md ${
                    isDark ? "border-slate-700 bg-slate-800/90" : "border-white bg-white/90"
                 } animate-bounce duration-[3000ms]`}>
-                   <div className="rounded-full bg-emerald-100 p-2 text-emerald-600">
+                   <div className="rounded-full bg-ember-100 p-2 text-ember-600">
                       <Icons.Zap />
                    </div>
                    <div>
                       <p className="text-xs font-bold text-slate-500">Receita Recuperada</p>
-                      <p className="text-lg font-bold text-emerald-500">+ R$ 12.450,00</p>
+                      <p className="text-lg font-bold text-ember-500">+ R$ 12.450,00</p>
                    </div>
                 </div>
              </div>
@@ -199,14 +199,14 @@ export function LandingPage({ theme, onToggleTheme }: LandingPageProps) {
               key={item.title}
               className={`group relative overflow-hidden rounded-3xl border p-6 transition-all hover:-translate-y-1 hover:shadow-2xl ${
                 isDark 
-                  ? "border-slate-800 bg-slate-900/40 hover:border-indigo-500/30" 
-                  : "border-slate-200 bg-white/60 hover:border-indigo-200"
+                  ? "border-slate-800 bg-slate-900/40 hover:border-ember-500/30" 
+                  : "border-slate-200 bg-white/70 hover:border-ember-200"
               }`}
             >
               <div className="absolute -right-4 -top-4 opacity-5 transition-transform group-hover:scale-110 group-hover:opacity-10">
                  <div className="scale-[3]">{item.icon}</div>
               </div>
-              <div className="mb-4 inline-flex rounded-xl bg-slate-500/10 p-3">
+              <div className="mb-4 inline-flex rounded-xl bg-ember-400/10 p-3">
                 {item.icon}
               </div>
               <strong className="block text-3xl font-bold tracking-tight">{item.title}</strong>
@@ -235,7 +235,7 @@ export function LandingPage({ theme, onToggleTheme }: LandingPageProps) {
                   isDark ? "border-slate-800 bg-slate-900/60 hover:bg-slate-800" : "border-slate-200 bg-white/60 hover:bg-white"
                 }`}
               >
-                <div className="mb-3 text-xs font-bold text-indigo-500">0{i + 1}</div>
+                <div className="mb-3 text-xs font-bold text-ember-500">0{i + 1}</div>
                 <h3 className="text-lg font-bold">{item.title}</h3>
                 <p className={`mt-2 text-sm leading-relaxed ${isDark ? "text-slate-400" : "text-slate-600"}`}>{item.desc}</p>
               </article>
@@ -246,8 +246,8 @@ export function LandingPage({ theme, onToggleTheme }: LandingPageProps) {
         {/* PRICING SECTION - NOVO! */}
         <section className="relative scroll-mt-24" id="precos">
            <div className="absolute inset-0 flex items-center justify-center opacity-30 blur-3xl pointer-events-none">
-              <div className="h-64 w-64 rounded-full bg-indigo-500"></div>
-              <div className="h-64 w-64 rounded-full bg-blue-500 -ml-20"></div>
+              <div className="h-64 w-64 rounded-full bg-ember-500"></div>
+              <div className="h-64 w-64 rounded-full bg-ink-900 -ml-20"></div>
            </div>
 
            <div className="relative text-center mb-12">
@@ -257,7 +257,7 @@ export function LandingPage({ theme, onToggleTheme }: LandingPageProps) {
 
            <div className="relative grid gap-8 lg:grid-cols-3 items-center">
               {/* STARTER */}
-              <div className={`rounded-3xl border p-8 ${isDark ? "border-slate-800 bg-slate-900/50" : "border-slate-200 bg-white/50"}`}>
+              <div className={`rounded-3xl border p-8 ${isDark ? "border-slate-800 bg-slate-900/50" : "border-slate-200 bg-white/60"}`}>
                  <h3 className="text-lg font-semibold text-slate-500">Starter</h3>
                  <div className="my-4 flex items-baseline">
                     <span className="text-3xl font-bold">R$ 49</span>
@@ -276,24 +276,24 @@ export function LandingPage({ theme, onToggleTheme }: LandingPageProps) {
 
               {/* PRO (Highlighted) */}
               <div className={`relative rounded-3xl border-2 p-8 shadow-2xl scale-105 z-10 ${
-                 isDark ? "border-indigo-500 bg-slate-900" : "border-indigo-600 bg-white"
+                 isDark ? "border-ember-500 bg-slate-900" : "border-ember-500 bg-white"
               }`}>
-                 <div className="absolute -top-4 left-0 right-0 mx-auto w-fit rounded-full bg-indigo-600 px-4 py-1 text-xs font-bold text-white uppercase tracking-wider">
+                 <div className="absolute -top-4 left-0 right-0 mx-auto w-fit rounded-full bg-ember-500 px-4 py-1 text-xs font-bold text-white uppercase tracking-wider">
                     Mais Popular
                  </div>
-                 <h3 className="text-lg font-semibold text-indigo-500">Pro Business</h3>
+                 <h3 className="text-lg font-semibold text-ember-500">Pro Business</h3>
                  <div className="my-4 flex items-baseline">
                     <span className="text-5xl font-bold">R$ 129</span>
                     <span className="text-slate-500">/mês</span>
                  </div>
                  <p className={`text-sm mb-6 ${isDark ? "text-slate-300" : "text-slate-600"}`}>Automação total para empresas em crescimento.</p>
-                 <button className="w-full rounded-xl bg-indigo-600 py-4 text-sm font-bold text-white shadow-lg shadow-indigo-500/25 transition-transform hover:bg-indigo-700 active:scale-95">
+                 <button className="w-full rounded-xl bg-ember-500 py-4 text-sm font-bold text-white shadow-lg shadow-ember-500/25 transition-transform hover:bg-ember-400 active:scale-95">
                     Assinar Pro Business
                  </button>
                  <ul className={`mt-8 space-y-4 text-sm text-left ${isDark ? "text-slate-300" : "text-slate-700"}`}>
                     {['Clientes Ilimitados', 'Integração WhatsApp API', 'Múltiplos Usuários', 'Webhook em Tempo Real', 'Suporte Prioritário'].map(feat => (
                        <li key={feat} className="flex items-center gap-3">
-                          <div className="rounded-full bg-indigo-500/20 p-1"><Icons.Check /></div>
+                          <div className="rounded-full bg-ember-500/20 p-1"><Icons.Check /></div>
                           <span>{feat}</span>
                        </li>
                     ))}
@@ -301,7 +301,7 @@ export function LandingPage({ theme, onToggleTheme }: LandingPageProps) {
               </div>
 
               {/* ENTERPRISE */}
-              <div className={`rounded-3xl border p-8 ${isDark ? "border-slate-800 bg-slate-900/50" : "border-slate-200 bg-white/50"}`}>
+              <div className={`rounded-3xl border p-8 ${isDark ? "border-slate-800 bg-slate-900/50" : "border-slate-200 bg-white/60"}`}>
                  <h3 className="text-lg font-semibold text-slate-500">Enterprise</h3>
                  <div className="my-4 flex items-baseline">
                     <span className="text-3xl font-bold">Sob Medida</span>
@@ -376,19 +376,19 @@ export function LandingPage({ theme, onToggleTheme }: LandingPageProps) {
         <section
           className={`relative overflow-hidden flex flex-col items-center justify-between gap-8 rounded-[2.5rem] border p-12 text-center md:text-left md:flex-row ${
             isDark 
-               ? "border-slate-700 bg-gradient-to-br from-slate-900 to-indigo-950/50" 
-               : "border-slate-200 bg-gradient-to-br from-white to-indigo-50/50"
+               ? "border-slate-700 bg-gradient-to-br from-slate-900 to-ink-900/50" 
+               : "border-slate-200 bg-gradient-to-br from-white to-ember-50/50"
           }`}
         >
           {/* Decorative glow */}
-          <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-indigo-500/20 blur-3xl pointer-events-none"></div>
+          <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-ember-500/20 blur-3xl pointer-events-none"></div>
 
           <div className="relative z-10 max-w-lg space-y-4">
             <h2 className="text-3xl font-bold md:text-4xl">Pronto para ter sua receita no piloto automático?</h2>
             <p className={`text-base ${isDark ? "text-slate-300" : "text-slate-500"}`}>
               Entre agora e comece a automatizar. Configure em menos de 5 minutos.
             </p>
-            <div className="flex flex-wrap gap-2 text-xs font-medium uppercase tracking-wider text-indigo-500">
+            <div className="flex flex-wrap gap-2 text-xs font-medium uppercase tracking-wider text-ember-500">
                <span className="flex items-center gap-1"><Icons.Check /> Setup Instantâneo</span>
                <span className="flex items-center gap-1"><Icons.Check /> Suporte Humanizado</span>
             </div>
@@ -397,8 +397,8 @@ export function LandingPage({ theme, onToggleTheme }: LandingPageProps) {
             <Link
               className={`inline-flex items-center justify-center rounded-2xl px-8 py-4 text-base font-bold shadow-xl transition-transform hover:scale-105 ${
                 isDark 
-                  ? "bg-slate-100 text-slate-900 hover:bg-white" 
-                  : "bg-slate-900 text-slate-50 hover:bg-slate-800"
+                  ? "bg-ember-500 text-white hover:bg-ember-400" 
+                  : "bg-ink-900 text-slate-50 hover:bg-ink-800"
               }`}
               to="/register"
             >
