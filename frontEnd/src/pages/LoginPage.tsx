@@ -3,6 +3,9 @@ import { Link } from "react-router-dom";
 import { api } from "../lib/api";
 import type { AuthPayload } from "../lib/auth";
 import { maskCpfCnpj, maskPhone, onlyDigits } from "../lib/masks";
+import logo from "../assets/logo.png";
+
+
 
 type LoginPageProps = {
   onAuth: (payload: AuthPayload) => void;
@@ -22,8 +25,6 @@ export function LoginPage({ onAuth, theme, onToggleTheme }: LoginPageProps) {
     email: "",
     phone: "",
     password: "",
-    bankProvider: "mock",
-    providerApiKey: "",
   });
 
   async function handleSubmit(e: FormEvent) {
@@ -42,8 +43,6 @@ export function LoginPage({ onAuth, theme, onToggleTheme }: LoginPageProps) {
           email: form.email,
           phone: onlyDigits(form.phone),
           password: form.password,
-          bankProvider: form.bankProvider,
-          providerApiKey: form.providerApiKey || undefined,
         })) as AuthPayload;
         onAuth(payload);
       }
@@ -67,25 +66,18 @@ export function LoginPage({ onAuth, theme, onToggleTheme }: LoginPageProps) {
     >
       <div className="mx-auto flex max-w-5xl flex-col gap-8">
         <header className="flex items-center justify-between">
-          <Link
-            className={`inline-flex items-center rounded-full px-4 py-2 text-[11px] font-bold uppercase tracking-[0.4em] ${
-              isDark ? "bg-slate-100 text-slate-900" : "bg-slate-900 text-slate-50"
-            }`}
-            to="/"
-          >
-            CobrancaPro
+          <Link className="flex flex-col gap-1" to="/">
+            <span
+              className="inline-flex w-fit items-center gap-1 rounded-full px-3 py-1 text-sm font-black tracking-[0.2em] uppercase"
+            >
+              <img src={logo} alt="CobrançaPro" className="h-20 w-20 object-contain" />
+              CobrançaPro
+            </span>
+            {/* <span className={`text-[10px] tracking-widest ${isDark ? "text-slate-400" : "text-slate-500"}`}>
+              SaaS AUTOMATION
+            </span> */}
           </Link>
-          <button
-            className={`rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] ${
-              isDark
-                ? "border-slate-600 bg-slate-900/70 text-slate-100"
-                : "border-slate-300 bg-white/80 text-slate-800"
-            }`}
-            type="button"
-            onClick={onToggleTheme}
-          >
-            {isDark ? "Modo claro" : "Modo escuro"}
-          </button>
+          <div />
         </header>
 
         <div
@@ -96,14 +88,14 @@ export function LoginPage({ onAuth, theme, onToggleTheme }: LoginPageProps) {
           <div className="flex items-start justify-between gap-6">
             <div>
               <h2 className="font-serif text-2xl">{mode === "login" ? "Entrar" : "Criar conta"}</h2>
-              <p className={`mt-2 text-sm ${isDark ? "text-slate-300" : "text-slate-500"}`}>
-                {mode === "login" ? "Acesse o painel do SaaS." : "Ative sua empresa em minutos."}
+              <p className={`mt-2 text-sm ${isDark ? "text-slate-300" : "text-slate-700"}`}>
+                {mode === "login" ? "Acesse o seu painel do cobrançaPro." : "Crie sua empresa em minutos."}
               </p>
             </div>
             <button
               type="button"
               className={`text-xs font-semibold uppercase tracking-[0.2em] ${
-                isDark ? "text-slate-300" : "text-slate-500"
+                isDark ? "text-slate-300" : "text-slate-900"
               }`}
               onClick={() => setMode(mode === "login" ? "register" : "login")}
             >
@@ -182,35 +174,6 @@ export function LoginPage({ onAuth, theme, onToggleTheme }: LoginPageProps) {
 
             {mode === "register" && (
               <>
-                <label className="grid gap-2 text-xs font-semibold uppercase tracking-[0.2em]">
-                  Banco principal
-                  <select
-                    className={inputClass}
-                    value={form.bankProvider}
-                    onChange={(e) => setForm({ ...form, bankProvider: e.target.value })}
-                  >
-                    <option value="mock">Mock</option>
-                    <option value="asaas">Asaas</option>
-                    <option value="cora" disabled>
-                      Cora (em breve)
-                    </option>
-                  </select>
-                  {fieldErrors.bankProvider?.[0] && (
-                    <span className="text-xs text-red-500">{fieldErrors.bankProvider[0]}</span>
-                  )}
-                </label>
-                <label className="grid gap-2 text-xs font-semibold uppercase tracking-[0.2em]">
-                  API Key do banco
-                  <input
-                    className={inputClass}
-                    value={form.providerApiKey}
-                    onChange={(e) => setForm({ ...form, providerApiKey: e.target.value })}
-                    placeholder="Opcional para mock"
-                  />
-                  {fieldErrors.providerApiKey?.[0] && (
-                    <span className="text-xs text-red-500">{fieldErrors.providerApiKey[0]}</span>
-                  )}
-                </label>
               </>
             )}
 

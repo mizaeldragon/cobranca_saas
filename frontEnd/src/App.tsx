@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { BrowserRouter, NavLink, Route, Routes } from "react-router-dom";
+import logo from "./assets/logo.png";
 import { LogOut, Moon, Settings, Sun } from "lucide-react";
 import { LandingPage } from "./pages/LandingPage";
 import { LoginPage } from "./pages/LoginPage";
@@ -113,7 +114,10 @@ function AppShell({
       <div className="mx-auto flex min-h-screen max-w-6xl flex-col gap-6 px-6 py-8 md:flex-row">
         <aside className="glass flex flex-col gap-6 rounded-3xl p-6 md:w-64 md:shrink-0">
           <div className="space-y-1">
-            <p className="text-xs font-semibold uppercase tracking-[0.4em] text-ink-700">CobrancaPro</p>
+            <div className="flex items-center gap-2">
+              <img src={logo} alt="CobrançaPro" className="h-16 w-16 object-contain" />
+              <p className="text-xs font-semibold uppercase tracking-[0.4em] text-ink-700">CobrancaPro</p>
+            </div>
             <p className="font-serif text-2xl text-ink-900">{companyName}</p>
           </div>
           <nav className="flex flex-row gap-2 overflow-x-auto md:flex-col">

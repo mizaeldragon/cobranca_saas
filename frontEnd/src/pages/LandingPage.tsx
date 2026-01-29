@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
+import logo from "../assets/logo.png";
 
 // Ícones SVG simples para não depender de bibliotecas externas
 const Icons = {
@@ -14,17 +15,17 @@ const Icons = {
     </svg>
   ),
   Zap: () => (
-    <svg className="h-6 w-6 text-ember-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <svg className="h-7 w-7 text-ember-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
     </svg>
   ),
   Chart: () => (
-    <svg className="h-6 w-6 text-ink-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <svg className="h-7 w-7 text-ink-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z" />
     </svg>
   ),
   Shield: () => (
-    <svg className="h-6 w-6 text-ink-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <svg className="h-7 w-7 text-ink-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
     </svg>
   ),
@@ -70,10 +71,9 @@ export function LandingPage({ theme, onToggleTheme }: LandingPageProps) {
         <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sticky top-0 z-50 py-4 -mx-6 px-6 backdrop-blur-md">
           <div className="flex flex-col gap-1">
             <span
-              className={`inline-flex w-fit items-center rounded-full px-4 py-1 text-sm font-black tracking-[0.2em] uppercase shadow-sm ${
-                isDark ? "bg-slate-100 text-slate-900" : "bg-slate-900 text-slate-50"
-              }`}
+              className="inline-flex w-fit items-center gap-1 rounded-full px-3 py-1 text-sm font-black tracking-[0.2em] uppercase"
             >
+              <img src={logo} alt="CobrançaPro" className="h-20 w-20 object-contain" />
               CobrançaPro
             </span>
             {/* <span className={`text-[10px] tracking-widest ${isDark ? "text-slate-400" : "text-slate-500"}`}>
@@ -82,15 +82,16 @@ export function LandingPage({ theme, onToggleTheme }: LandingPageProps) {
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <button
-              className={`rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-wider transition-all hover:scale-105 ${
+              className={`inline-flex items-center gap-2 rounded-full border px-5 py-2.5 text-xs font-semibold transition ${
                 isDark
-                  ? "border-slate-700 bg-slate-900/50 text-slate-300 hover:bg-slate-800"
-                  : "border-slate-200 bg-white/50 text-slate-600 hover:bg-white"
+                  ? "border-slate-600 bg-slate-800/70 text-slate-200 hover:bg-slate-800"
+                  : "border-slate-300 bg-white/80 text-slate-700 hover:bg-white"
               }`}
               type="button"
               onClick={onToggleTheme}
             >
-              {isDark ? "Modo claro" : "Modo escuro"}
+              <span className="text-sm">{isDark ? "☀" : "☾"}</span>
+              {isDark ? "Claro" : "Escuro"}
             </button>
             <Link
               className={`group flex items-center gap-2 rounded-full border px-6 py-2 text-sm font-bold shadow-lg transition-all hover:-translate-y-0.5 ${
@@ -135,13 +136,13 @@ export function LandingPage({ theme, onToggleTheme }: LandingPageProps) {
                 Testar Grátis por 7 dias
                 <Icons.ArrowRight />
               </Link>
-              <button className={`inline-flex h-12 items-center justify-center rounded-full border px-8 text-sm font-bold transition-all hover:bg-slate-100/10 ${
+              <button className={`inline-flex h-12 items-center justify-center rounded-full border px-8 text-sm text-white font-bold transition-all bg-slate-800 hover:bg-slate-700 ${
                 isDark ? "border-slate-700 text-slate-300" : "border-slate-300 text-slate-700 hover:bg-slate-100"
               }`}>
                 Ver Demonstração
               </button>
             </div>
-            <p className="text-xs text-slate-500 uppercase tracking-widest">Sem cartão de crédito • Cancelamento a qualquer hora</p>
+            {/* <p className="text-xs text-slate-500 uppercase tracking-widest">Sem cartão de crédito • Cancelamento a qualquer hora</p> */}
           </div>
 
           {/* Hero Visual/Image Placeholder */}
@@ -180,11 +181,21 @@ export function LandingPage({ theme, onToggleTheme }: LandingPageProps) {
           <p className="text-center text-xs font-bold uppercase tracking-widest text-slate-500 mb-6">
             Empresas que escalaram com o CobrançaPro
           </p>
-          <div className="flex flex-wrap justify-center gap-8 opacity-50 grayscale transition-all hover:grayscale-0 hover:opacity-100">
-             {/* Placeholder Logos - substitua por SVGs reais */}
-             {['Acme Corp', 'GlobalBank', 'TechStart', 'FinanceFlow', 'DevHouse'].map(logo => (
-                <span key={logo} className="text-xl font-black font-serif text-slate-500">{logo}</span>
-             ))}
+          <div className="logo-carousel">
+            <div className="logo-track">
+              {["Acme Corp", "GlobalBank", "TechStart", "FinanceFlow", "DevHouse"].map((logo, idx) => (
+                <span key={`a-${logo}-${idx}`} className="logo-item">
+                  {logo}
+                </span>
+              ))}
+            </div>
+            <div className="logo-track" aria-hidden="true">
+              {["Acme Corp", "GlobalBank", "TechStart", "FinanceFlow", "DevHouse"].map((logo, idx) => (
+                <span key={`b-${logo}-${idx}`} className="logo-item">
+                  {logo}
+                </span>
+              ))}
+            </div>
           </div>
         </section>
 
@@ -197,16 +208,13 @@ export function LandingPage({ theme, onToggleTheme }: LandingPageProps) {
           ].map((item) => (
             <div
               key={item.title}
-              className={`group relative overflow-hidden rounded-3xl border p-6 transition-all hover:-translate-y-1 hover:shadow-2xl ${
+              className={`group cursor-pointer relative overflow-hidden rounded-3xl border p-6 transition-all hover:-translate-y-1 hover:shadow-2xl hover:shadow-[0_30px_70px_-50px_rgba(248,123,27,0.5)] ${
                 isDark 
                   ? "border-slate-800 bg-slate-900/40 hover:border-ember-500/30" 
                   : "border-slate-200 bg-white/70 hover:border-ember-200"
               }`}
             >
-              <div className="absolute -right-4 -top-4 opacity-5 transition-transform group-hover:scale-110 group-hover:opacity-10">
-                 <div className="scale-[3]">{item.icon}</div>
-              </div>
-              <div className="mb-4 inline-flex rounded-xl bg-ember-400/10 p-3">
+              <div className="mb-4 inline-flex rounded-xl border border-ember-400/30 bg-ember-400/20 p-3">
                 {item.icon}
               </div>
               <strong className="block text-3xl font-bold tracking-tight">{item.title}</strong>
@@ -258,18 +266,18 @@ export function LandingPage({ theme, onToggleTheme }: LandingPageProps) {
            <div className="relative grid gap-8 lg:grid-cols-3 items-center">
               {/* STARTER */}
               <div className={`rounded-3xl border p-8 ${isDark ? "border-slate-800 bg-slate-900/50" : "border-slate-200 bg-white/60"}`}>
-                 <h3 className="text-lg font-semibold text-slate-500">Starter</h3>
+                 <h3 className="text-lg font-semibold text-slate-700">Starter</h3>
                  <div className="my-4 flex items-baseline">
                     <span className="text-3xl font-bold">R$ 49</span>
-                    <span className="text-slate-500">/mês</span>
+                    <span className="text-slate-700">/mês</span>
                  </div>
-                 <p className="text-sm text-slate-500 mb-6">Para quem está começando a organizar a casa.</p>
+                 <p className="text-sm text-slate-700 mb-6">Para quem está começando a organizar a casa.</p>
                  <button className={`w-full rounded-xl border py-3 text-sm font-bold transition-transform active:scale-95 ${
                     isDark ? "border-slate-700 hover:bg-slate-800" : "border-slate-300 hover:bg-slate-50"
                  }`}>Começar Starter</button>
                  <ul className="mt-8 space-y-4 text-sm text-left">
                     {['Até 50 clientes', 'Cobranças ilimitadas', 'Painel Básico'].map(feat => (
-                       <li key={feat} className="flex items-center gap-3"><Icons.Check /><span className="text-slate-500">{feat}</span></li>
+                       <li key={feat} className="flex items-center gap-3"><Icons.Check /><span className="text-slate-700">{feat}</span></li>
                     ))}
                  </ul>
               </div>
@@ -302,7 +310,7 @@ export function LandingPage({ theme, onToggleTheme }: LandingPageProps) {
 
               {/* ENTERPRISE */}
               <div className={`rounded-3xl border p-8 ${isDark ? "border-slate-800 bg-slate-900/50" : "border-slate-200 bg-white/60"}`}>
-                 <h3 className="text-lg font-semibold text-slate-500">Enterprise</h3>
+                 <h3 className="text-lg font-semibold text-slate-700">Enterprise</h3>
                  <div className="my-4 flex items-baseline">
                     <span className="text-3xl font-bold">Sob Medida</span>
                  </div>
@@ -336,7 +344,7 @@ export function LandingPage({ theme, onToggleTheme }: LandingPageProps) {
                     <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-slate-400 to-slate-200" />
                     <div>
                        <p className="text-sm font-bold">{t.author}</p>
-                       <p className="text-xs text-slate-500">{t.role}</p>
+                       <p className="text-xs text-slate-600">{t.role}</p>
                     </div>
                  </div>
               </div>
@@ -385,7 +393,7 @@ export function LandingPage({ theme, onToggleTheme }: LandingPageProps) {
 
           <div className="relative z-10 max-w-lg space-y-4">
             <h2 className="text-3xl font-bold md:text-4xl">Pronto para ter sua receita no piloto automático?</h2>
-            <p className={`text-base ${isDark ? "text-slate-300" : "text-slate-500"}`}>
+            <p className={`text-base ${isDark ? "text-slate-300" : "text-slate-700"}`}>
               Entre agora e comece a automatizar. Configure em menos de 5 minutos.
             </p>
             <div className="flex flex-wrap gap-2 text-xs font-medium uppercase tracking-wider text-ember-500">
@@ -410,7 +418,7 @@ export function LandingPage({ theme, onToggleTheme }: LandingPageProps) {
         </section>
 
         {/* FOOTER */}
-        <footer className={`border-t py-12 text-center text-sm ${isDark ? "border-slate-800 text-slate-500" : "border-slate-200 text-slate-400"}`}>
+        <footer className={`border-t py-12 text-center text-sm ${isDark ? "border-slate-800 text-slate-500" : "border-slate-200 text-slate-700"}`}>
            <p>&copy; {new Date().getFullYear()} CobrançaPro. Todos os direitos reservados.</p>
            <div className="mt-4 flex justify-center gap-6">
               <a href="#" className="hover:underline">Termos</a>

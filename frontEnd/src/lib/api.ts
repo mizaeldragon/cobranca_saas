@@ -60,8 +60,6 @@ export const api = {
     email: string;
     phone: string;
     password: string;
-    bankProvider: string;
-    providerApiKey?: string;
   }) => request("/auth/register", { method: "POST", body: payload, auth: false }),
 
   getCompany: () => request("/companies/me"),

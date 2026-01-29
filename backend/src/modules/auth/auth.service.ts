@@ -10,7 +10,7 @@ type RegisterInput = {
   email: string;
   phone: string;
   password: string;
-  bankProvider: string;
+  bankProvider?: string;
   providerApiKey?: string;
 };
 
@@ -38,7 +38,7 @@ export const AuthService = {
           input.document,
           input.email.toLowerCase(),
           password_hash,
-          input.bankProvider,
+          input.bankProvider ?? "mock",
           input.providerApiKey ?? null,
           crypto.randomBytes(24).toString("hex"),
         ]

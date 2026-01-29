@@ -15,7 +15,7 @@ authRoutes.post(
       email: z.string().email(),
       phone: z.string().regex(/^\d{11}$/),
       password: z.string().min(6),
-      bankProvider: z.string().default("mock"),
+      bankProvider: z.string().optional(),
       providerApiKey: z.string().optional(),
     })
   ),

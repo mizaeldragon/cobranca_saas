@@ -17,8 +17,6 @@ export function AuthPage({ onAuth }: AuthPageProps) {
     document: "",
     email: "",
     password: "",
-    bankProvider: "mock",
-    providerApiKey: "",
   });
 
   useEffect(() => {
@@ -46,8 +44,7 @@ export function AuthPage({ onAuth }: AuthPageProps) {
           document: form.document,
           email: form.email,
           password: form.password,
-          bankProvider: form.bankProvider,
-          providerApiKey: form.providerApiKey || undefined,
+          phone: ""
         })) as AuthPayload;
         onAuth(payload);
       }
@@ -165,32 +162,6 @@ export function AuthPage({ onAuth }: AuthPageProps) {
                 required
               />
             </label>
-
-            {mode === "register" && (
-              <>
-                <label>
-                  Banco principal
-                  <select
-                    value={form.bankProvider}
-                    onChange={(e) => setForm({ ...form, bankProvider: e.target.value })}
-                  >
-                    <option value="mock">Mock</option>
-                    <option value="asaas">Asaas</option>
-                    <option value="cora" disabled>
-                      Cora (em breve)
-                    </option>
-                  </select>
-                </label>
-                <label>
-                  API Key do banco
-                  <input
-                    value={form.providerApiKey}
-                    onChange={(e) => setForm({ ...form, providerApiKey: e.target.value })}
-                    placeholder="Opcional para mock"
-                  />
-                </label>
-              </>
-            )}
 
             {error && <p className="auth-error">{error}</p>}
 

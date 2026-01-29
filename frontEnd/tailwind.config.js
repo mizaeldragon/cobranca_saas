@@ -4,8 +4,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["Space Grotesk", "ui-sans-serif", "system-ui", "sans-serif"],
-        serif: ["Fraunces", "ui-serif", "Georgia", "serif"],
+        sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
+        serif: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
       },
       colors: {
         slate: {
