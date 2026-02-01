@@ -169,7 +169,7 @@ export function LandingPage({ theme, onToggleTheme }: LandingPageProps) {
                    </div>
                    <div>
                       <p className="text-xs font-bold text-slate-500">Receita Recuperada</p>
-                      <p className="text-lg font-bold text-ember-500">+ R$ 12.450,00</p>
+                      <p className="text-lg font-bold text-ember-500">+ R$ 15.450,00</p>
                    </div>
                 </div>
              </div>
