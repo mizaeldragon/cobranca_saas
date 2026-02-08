@@ -1,11 +1,17 @@
 // src/modules/providers/provider.types.ts
 
-export type ProviderName = "mock" | "asaas";
+export type ProviderName = "mock" | "asaas" | "cora" | "santander";
 
 export type PaymentMethod = "pix" | "boleto" | "card";
 
 export type ProviderContext = {
   apiKey?: string; // Asaas usa; mock ignora
+  userAgent?: string;
+  clientId?: string;
+  clientSecret?: string;
+  certificate?: string;
+  privateKey?: string;
+  certificatePassword?: string;
 };
 
 export type CreateChargeCustomer = {

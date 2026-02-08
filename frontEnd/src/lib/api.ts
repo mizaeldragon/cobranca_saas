@@ -116,4 +116,10 @@ export const api = {
     currentPassword?: string;
     newPassword?: string;
   }) => request("/users/me", { method: "PATCH", body: payload }),
+
+  listGateways: () => request("/gateways"),
+  createGateway: (payload: unknown) => request("/gateways", { method: "POST", body: payload }),
+  updateGateway: (id: string, payload: unknown) => request(`/gateways/${id}`, { method: "PATCH", body: payload }),
+  activateGateway: (id: string) => request(`/gateways/${id}/activate`, { method: "POST" }),
+  deleteGateway: (id: string) => request(`/gateways/${id}`, { method: "DELETE" }),
 };

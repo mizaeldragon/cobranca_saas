@@ -7,6 +7,7 @@ import rateLimit from "express-rate-limit";
 import { authRoutes } from "./modules/auth/auth.routes";
 import { customersRoutes } from "./modules/customers/customers.routes";
 import { companiesRoutes } from "./modules/companies/companies.routes";
+import { gatewaysRoutes } from "./modules/gateways/gateways.routes";
 import { subscriptionsRoutes } from "./modules/subscriptions/subscriptions.routes";
 import { chargesRoutes } from "./modules/charges/charges.routes";
 import { webhooksRoutes } from "./modules/webhooks/webhooks.routes";
@@ -57,6 +58,7 @@ app.use(
 );
 
 app.use("/companies", companiesRoutes);
+app.use("/gateways", gatewaysRoutes);
 app.use("/users", usersRoutes);
 
 app.use("/customers", customersRoutes);

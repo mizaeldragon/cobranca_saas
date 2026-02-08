@@ -1,10 +1,20 @@
 import { useEffect, useState, type FormEvent } from "react";
+import { createPortal } from "react-dom";
 import { api } from "../lib/api";
 import { clearAuth, getAuth, setAuth } from "../lib/auth";
 import { maskPhone, onlyDigits } from "../lib/masks";
-import { Button, Card, Input, Label, SectionTitle, Select } from "../components/ui";
+import { Badge, Button, Card, Input, Label, SectionTitle, Select, Textarea } from "../components/ui";
 
 type SettingsTab = "dados" | "seguranca" | "gateways" | "whatsapp" | "email";
+type GatewayProvider = "asaas" | "cora" | "santander";
+type GatewayItem = {
+  id: string;
+  provider: GatewayProvider;
+  label: string | null;
+  credentials: Record<string, any>;
+  active: boolean;
+  created_at?: string;
+};
 
 export function SettingsPage() {
   const [tab, setTab] = useState<SettingsTab>("dados");
@@ -20,8 +30,6 @@ export function SettingsPage() {
   const authRole = getAuth()?.role ?? "ADMIN";
   const [form, setForm] = useState({
     legalName: "",
-    bankProvider: "mock",
-    providerApiKey: "",
     whatsappEnabled: false,
     whatsappProvider: "meta",
     metaAccessToken: "",
@@ -37,6 +45,28 @@ export function SettingsPage() {
     smtpFrom: "",
     smtpSecure: false,
   });
+  const [gateways, setGateways] = useState<GatewayItem[]>([]);
+  const [gatewayModal, setGatewayModal] = useState<{
+    provider: GatewayProvider;
+    gateway?: GatewayItem;
+  } | null>(null);
+  const [gatewayStep, setGatewayStep] = useState(1);
+  const [gatewayForm, setGatewayForm] = useState({
+    provider: "asaas" as GatewayProvider,
+    label: "",
+    active: true,
+    apiKey: "",
+    userAgent: "",
+    clientId: "",
+    clientSecret: "",
+    certificate: "",
+    privateKey: "",
+    certificatePassword: "",
+    companyId: "",
+    workspaceId: "",
+    certificateExpiresAt: "",
+  });
+  const [gatewayBusy, setGatewayBusy] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -50,8 +80,6 @@ export function SettingsPage() {
         if (!active) return;
         setForm({
           legalName: (companyData as any).legal_name ?? "",
-          bankProvider: (companyData as any).bank_provider ?? "mock",
-          providerApiKey: "",
           whatsappEnabled: Boolean((companyData as any).whatsapp_enabled),
           whatsappProvider: (companyData as any).whatsapp_provider ?? "meta",
           metaAccessToken: (companyData as any).meta_access_token ?? "",
@@ -77,6 +105,10 @@ export function SettingsPage() {
           email: baseEmail,
           phone: maskPhone(basePhone),
         }));
+        if (authRole === "OWNER") {
+          const gatewaysData = (await api.listGateways()) as GatewayItem[];
+          if (active) setGateways(gatewaysData ?? []);
+        }
       } catch (err: any) {
         if (!active) return;
         setError(err?.message ?? "Failed to load company");
@@ -99,8 +131,166 @@ export function SettingsPage() {
     return () => clearTimeout(t);
   }, [success]);
 
+  const providerLabels: Record<GatewayProvider, string> = {
+    asaas: "Asaas",
+    cora: "Cora",
+    santander: "Santander",
+  };
+
+  const maskSecret = (value?: string | null) => {
+    if (!value) return "nao informado";
+    if (value.length <= 6) return "***";
+    return `${value.slice(0, 4)}***${value.slice(-4)}`;
+  };
+
+  const gatewaySummary = (gateway: GatewayItem) => {
+    if (gateway.provider === "asaas") {
+      return `API Key: ${maskSecret(gateway.credentials?.apiKey)}`;
+    }
+    if (gateway.provider === "cora") {
+      return `Client ID: ${maskSecret(gateway.credentials?.clientId)}`;
+    }
+    return `Client ID: ${maskSecret(gateway.credentials?.clientId)}`;
+  };
+
+  const getStepConfig = (provider: GatewayProvider) => {
+    if (provider === "santander") {
+      return ["Certificado", "Workspace", "Settings"];
+    }
+    if (provider === "cora") {
+      return ["Credenciais", "Settings"];
+    }
+    return ["Credenciais"];
+  };
+
+  const openGatewayModal = (provider: GatewayProvider, gateway?: GatewayItem) => {
+    const hasActive = gateways.some((item) => item.active);
+    setGatewayForm({
+      provider,
+      label: gateway?.label ?? "",
+      active: gateway?.active ?? !hasActive,
+      apiKey: gateway?.credentials?.apiKey ?? "",
+      userAgent: gateway?.credentials?.userAgent ?? "",
+      clientId: gateway?.credentials?.clientId ?? "",
+      clientSecret: gateway?.credentials?.clientSecret ?? "",
+      certificate: gateway?.credentials?.certificate ?? "",
+      privateKey: gateway?.credentials?.privateKey ?? "",
+      certificatePassword: gateway?.credentials?.certificatePassword ?? "",
+      companyId: gateway?.credentials?.companyId ?? "",
+      workspaceId: gateway?.credentials?.workspaceId ?? "",
+      certificateExpiresAt: gateway?.credentials?.certificateExpiresAt ?? "",
+    });
+    setGatewayModal({ provider, gateway });
+    setGatewayStep(1);
+    setError(null);
+    setSuccess(null);
+  };
+
+  const closeGatewayModal = () => {
+    setGatewayModal(null);
+  };
+
+  const refreshGateways = async () => {
+    if (authRole !== "OWNER") return;
+    const data = (await api.listGateways()) as GatewayItem[];
+    setGateways(data ?? []);
+  };
+
+  const buildGatewayPayload = () => {
+    if (gatewayForm.provider === "asaas") {
+      return {
+        provider: "asaas",
+        label: gatewayForm.label || undefined,
+        active: gatewayForm.active,
+        apiKey: gatewayForm.apiKey.trim(),
+        userAgent: gatewayForm.userAgent.trim() || undefined,
+      };
+    }
+    if (gatewayForm.provider === "cora") {
+      return {
+        provider: "cora",
+        label: gatewayForm.label || undefined,
+        active: gatewayForm.active,
+        clientId: gatewayForm.clientId.trim(),
+        certificate: gatewayForm.certificate.trim(),
+        privateKey: gatewayForm.privateKey.trim(),
+        certificatePassword: gatewayForm.certificatePassword.trim() || undefined,
+      };
+    }
+    return {
+      provider: "santander",
+      label: gatewayForm.label || undefined,
+      active: gatewayForm.active,
+      clientId: gatewayForm.clientId.trim(),
+      clientSecret: gatewayForm.clientSecret.trim(),
+      certificate: gatewayForm.certificate.trim(),
+      certificatePassword: gatewayForm.certificatePassword.trim() || undefined,
+      companyId: gatewayForm.companyId.trim() || undefined,
+      workspaceId: gatewayForm.workspaceId.trim() || undefined,
+      certificateExpiresAt: gatewayForm.certificateExpiresAt.trim() || undefined,
+    };
+  };
+
+  const handleGatewaySave = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!gatewayModal) return;
+    setGatewayBusy(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      const payload = buildGatewayPayload();
+      if (gatewayModal.gateway) {
+        await api.updateGateway(gatewayModal.gateway.id, payload);
+      } else {
+        await api.createGateway(payload);
+      }
+      await refreshGateways();
+      closeGatewayModal();
+      setSuccess("Gateway salvo.");
+    } catch (err: any) {
+      setError(err?.message ?? "Falha ao salvar gateway");
+    } finally {
+      setGatewayBusy(false);
+    }
+  };
+
+  const handleGatewayActivate = async (id: string) => {
+    setGatewayBusy(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      await api.activateGateway(id);
+      await refreshGateways();
+      setSuccess("Gateway ativado.");
+    } catch (err: any) {
+      setError(err?.message ?? "Falha ao ativar gateway");
+    } finally {
+      setGatewayBusy(false);
+    }
+  };
+
+  const handleGatewayRemove = async (id: string) => {
+    if (typeof window !== "undefined") {
+      const ok = window.confirm("Remover este gateway?");
+      if (!ok) return;
+    }
+    setGatewayBusy(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      await api.deleteGateway(id);
+      await refreshGateways();
+      setSuccess("Gateway removido.");
+    } catch (err: any) {
+      setError(err?.message ?? "Falha ao remover gateway");
+    } finally {
+      setGatewayBusy(false);
+    }
+  };
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+    if (tab === "gateways") return;
     setLoading(true);
     setError(null);
     setSuccess(null);
@@ -161,8 +351,6 @@ export function SettingsPage() {
       } else if (authRole === "OWNER") {
         await api.updateCompany({
           legalName: form.legalName || undefined,
-          bankProvider: form.bankProvider,
-          providerApiKey: form.providerApiKey || null,
           whatsappEnabled: form.whatsappEnabled,
           whatsappProvider: form.whatsappProvider,
           metaAccessToken: form.metaAccessToken || null,
@@ -189,39 +377,40 @@ export function SettingsPage() {
   }
 
   return (
-    <div className="space-y-6 animate-rise">
-      <div>
-        <SectionTitle>Settings</SectionTitle>
-        <p className="text-sm text-ink-700">Gerencie dados, seguranca, gateways e integracoes.</p>
-      </div>
-
-      <Card>
-        <div className="flex flex-wrap gap-2">
-          {[
-            { id: "dados", label: "Dados" },
-            { id: "seguranca", label: "Seguranca" },
-            ...(authRole === "OWNER"
-              ? [
-                  { id: "gateways", label: "Gateways" },
-                  { id: "whatsapp", label: "WhatsApp" },
-                  { id: "email", label: "Email" },
-                ]
-              : []),
-          ].map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => setTab(item.id as SettingsTab)}
-              className={`rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] transition ${
-                tab === item.id ? "bg-ink-900 text-sand-50" : "bg-ink-700/10 text-ink-700 hover:bg-ink-700/20"
-              }`}
-            >
-              {item.label}
-            </button>
-          ))}
+    <>
+      <div className="space-y-6 animate-rise">
+        <div>
+          <SectionTitle>Settings</SectionTitle>
+          <p className="text-sm text-ink-700">Gerencie dados, seguranca, gateways e integracoes.</p>
         </div>
 
-        <form className="mt-6 grid gap-4 md:grid-cols-2" onSubmit={handleSubmit}>
+        <Card>
+          <div className="flex flex-wrap gap-2">
+            {[
+              { id: "dados", label: "Dados" },
+              { id: "seguranca", label: "Seguranca" },
+              ...(authRole === "OWNER"
+                ? [
+                    { id: "gateways", label: "Gateways" },
+                    { id: "whatsapp", label: "WhatsApp" },
+                    { id: "email", label: "Email" },
+                  ]
+                : []),
+            ].map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => setTab(item.id as SettingsTab)}
+                className={`rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] transition ${
+                  tab === item.id ? "bg-ink-900 text-sand-50" : "bg-ink-700/10 text-ink-700 hover:bg-ink-700/20"
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+
+          <form className="mt-6 grid gap-4 md:grid-cols-2" onSubmit={handleSubmit}>
           {tab === "dados" && (
             <>
               <div className="space-y-2">
@@ -281,33 +470,76 @@ export function SettingsPage() {
           )}
 
           {tab === "gateways" && authRole === "OWNER" && (
-            <>
-              <div className="space-y-2">
-                <Label>Banco principal</Label>
-                <Select value={form.bankProvider} onChange={(e) => setForm({ ...form, bankProvider: e.target.value })}>
-                  <option value="mock">Mock</option>
-                  <option value="asaas">Asaas</option>
-                  <option value="cora" disabled>
-                    Cora (em breve)
-                  </option>
-                  <option value="santander" disabled>
-                    Santander (em breve)
-                  </option>
-                </Select>
-                {fieldErrors.bankProvider?.[0] && <p className="text-xs text-red-500">{fieldErrors.bankProvider[0]}</p>}
+            <div className="md:col-span-2 space-y-4">
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <SectionTitle>Gateways</SectionTitle>
+                  <p className="text-sm text-ink-700">
+                    Cadastre suas credenciais de producao e marque qual gateway fica ativo.
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Button type="button" variant="outline" onClick={() => openGatewayModal("asaas")}>
+                    Adicionar Asaas
+                  </Button>
+                  <Button type="button" variant="outline" onClick={() => openGatewayModal("cora")}>
+                    Adicionar Cora
+                  </Button>
+                  <Button type="button" variant="outline" onClick={() => openGatewayModal("santander")}>
+                    Adicionar Santander
+                  </Button>
+                </div>
               </div>
-              <div className="space-y-2 md:col-span-2">
-                <Label>API Key</Label>
-                <Input
-                  value={form.providerApiKey}
-                  onChange={(e) => setForm({ ...form, providerApiKey: e.target.value })}
-                  placeholder="Deixe vazio para manter"
-                />
-                {fieldErrors.providerApiKey?.[0] && (
-                  <p className="text-xs text-red-500">{fieldErrors.providerApiKey[0]}</p>
-                )}
-              </div>
-            </>
+
+              {gateways.length === 0 ? (
+                <p className="text-sm text-ink-700">Nenhum gateway cadastrado ainda.</p>
+              ) : (
+                <div className="grid gap-3">
+                  {gateways.map((gateway) => (
+                    <div
+                      key={gateway.id}
+                      className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-ink-700/10 bg-white/80 p-4 shadow-sm"
+                    >
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-sm font-bold text-ink-900">
+                            {providerLabels[gateway.provider]}
+                          </h4>
+                          {gateway.active && <Badge tone="ember">Ativo</Badge>}
+                        </div>
+                        <p className="text-xs text-ink-700">
+                          {gateway.label || "Sem nome"} • {gatewaySummary(gateway)}
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        {!gateway.active && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => handleGatewayActivate(gateway.id)}
+                            disabled={gatewayBusy}
+                          >
+                            Ativar
+                          </Button>
+                        )}
+                        <Button type="button" variant="ghost" onClick={() => openGatewayModal(gateway.provider, gateway)}>
+                          Editar
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          className="text-ember-500"
+                          onClick={() => handleGatewayRemove(gateway.id)}
+                          disabled={gatewayBusy}
+                        >
+                          Remover
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           )}
 
           {tab === "whatsapp" && authRole === "OWNER" && (
@@ -450,15 +682,295 @@ export function SettingsPage() {
             </>
           )}
 
-          <div className="flex items-end md:col-span-2">
-            <Button type="submit" disabled={loading}>
-              {loading ? "Salvando..." : "Salvar alteracoes"}
-            </Button>
-          </div>
+          {tab !== "gateways" && (
+            <div className="flex items-end md:col-span-2">
+              <Button type="submit" disabled={loading}>
+                {loading ? "Salvando..." : "Salvar alteracoes"}
+              </Button>
+            </div>
+          )}
           {error && <p className="text-sm text-ember-500 md:col-span-2">{error}</p>}
           {success && <p className="text-sm text-tide-600 md:col-span-2">{success}</p>}
-        </form>
-      </Card>
-    </div>
+          </form>
+        </Card>
+      </div>
+
+      {gatewayModal &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-ink-900/70 backdrop-blur-sm">
+            <div className="mx-4 w-full max-w-2xl max-h-[90dvh] overflow-y-auto rounded-3xl border border-ink-700/20 bg-white/95 p-6 shadow-2xl">
+            {(() => {
+              const steps = getStepConfig(gatewayModal.provider);
+              const stepCount = steps.length;
+              const currentStep = Math.min(gatewayStep, stepCount);
+              const isLastStep = currentStep === stepCount;
+              const showStepper = stepCount > 1;
+              return (
+                <>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <SectionTitle>Configurar {providerLabels[gatewayModal.provider]}</SectionTitle>
+                <p className="text-sm text-ink-700">
+                  {gatewayModal.provider === "santander"
+                    ? "Fluxo: certificado -> workspace -> settings."
+                    : "Preencha as credenciais de producao do gateway."}
+                </p>
+              </div>
+              <Button type="button" variant="ghost" onClick={closeGatewayModal}>
+                Fechar
+              </Button>
+            </div>
+
+            {showStepper && (
+              <div className="mt-6">
+                <div className="flex items-center justify-between gap-3">
+                  {steps.map((label, idx) => {
+                    const stepNumber = idx + 1;
+                    const isActive = stepNumber <= currentStep;
+                    return (
+                      <div key={label} className="flex flex-1 items-center gap-3">
+                        <div
+                          className={`flex h-9 w-9 items-center justify-center rounded-full border text-sm font-semibold ${
+                            isActive ? "border-ember-500 bg-ember-500/10 text-ember-500" : "border-ink-700/20 text-ink-700"
+                          }`}
+                        >
+                          {stepNumber}
+                        </div>
+                        <div className="text-xs font-semibold uppercase tracking-[0.2em] text-ink-700">
+                          {label}
+                        </div>
+                        {idx < steps.length - 1 && (
+                          <div className="mx-2 h-[2px] flex-1 rounded bg-ink-700/10" />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            <form className="mt-6 grid gap-4 md:grid-cols-2" onSubmit={handleGatewaySave}>
+              {gatewayModal.provider === "asaas" && (
+                <>
+                  <div className="space-y-2 md:col-span-2">
+                    <Label>API Key</Label>
+                    <Input
+                      value={gatewayForm.apiKey}
+                      onChange={(e) => setGatewayForm({ ...gatewayForm, apiKey: e.target.value })}
+                      placeholder="aact_prod_..."
+                    />
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <Label>User-Agent (opcional)</Label>
+                    <Input
+                      value={gatewayForm.userAgent}
+                      onChange={(e) => setGatewayForm({ ...gatewayForm, userAgent: e.target.value })}
+                      placeholder="SuaEmpresa/1.0"
+                    />
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <Label>Nome da credencial</Label>
+                    <Input
+                      value={gatewayForm.label}
+                      onChange={(e) => setGatewayForm({ ...gatewayForm, label: e.target.value })}
+                      placeholder="Ex: Conta principal"
+                    />
+                  </div>
+                  <div className="flex items-center gap-3 md:col-span-2">
+                    <input
+                      type="checkbox"
+                      checked={gatewayForm.active}
+                      onChange={(e) => setGatewayForm({ ...gatewayForm, active: e.target.checked })}
+                    />
+                    <span className="text-sm text-ink-700">Definir como ativo</span>
+                  </div>
+                </>
+              )}
+
+              {gatewayModal.provider === "cora" && (
+                <>
+                  {currentStep === 1 && (
+                    <>
+                      <div className="space-y-2 md:col-span-2">
+                        <Label>Client ID</Label>
+                        <Input
+                          value={gatewayForm.clientId}
+                          onChange={(e) => setGatewayForm({ ...gatewayForm, clientId: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-2 md:col-span-2">
+                        <Label>Certificado (PEM/PFX)</Label>
+                        <Textarea
+                          rows={4}
+                          value={gatewayForm.certificate}
+                          onChange={(e) => setGatewayForm({ ...gatewayForm, certificate: e.target.value })}
+                          placeholder="Cole o certificado completo"
+                        />
+                      </div>
+                      <div className="space-y-2 md:col-span-2">
+                        <Label>Private Key</Label>
+                        <Textarea
+                          rows={4}
+                          value={gatewayForm.privateKey}
+                          onChange={(e) => setGatewayForm({ ...gatewayForm, privateKey: e.target.value })}
+                          placeholder="Cole a private key"
+                        />
+                      </div>
+                      <div className="space-y-2 md:col-span-2">
+                        <Label>Senha do certificado (opcional)</Label>
+                        <Input
+                          value={gatewayForm.certificatePassword}
+                          onChange={(e) => setGatewayForm({ ...gatewayForm, certificatePassword: e.target.value })}
+                        />
+                      </div>
+                    </>
+                  )}
+                  {currentStep === 2 && (
+                    <>
+                      <div className="space-y-2 md:col-span-2">
+                        <Label>Nome da credencial</Label>
+                        <Input
+                          value={gatewayForm.label}
+                          onChange={(e) => setGatewayForm({ ...gatewayForm, label: e.target.value })}
+                          placeholder="Ex: Conta principal"
+                        />
+                      </div>
+                      <div className="flex items-center gap-3 md:col-span-2">
+                        <input
+                          type="checkbox"
+                          checked={gatewayForm.active}
+                          onChange={(e) => setGatewayForm({ ...gatewayForm, active: e.target.checked })}
+                        />
+                        <span className="text-sm text-ink-700">Definir como ativo</span>
+                      </div>
+                    </>
+                  )}
+                </>
+              )}
+
+              {gatewayModal.provider === "santander" && (
+                <>
+                  {currentStep === 1 && (
+                    <>
+                      <div className="space-y-2">
+                        <Label>Company ID</Label>
+                        <Input
+                          value={gatewayForm.companyId}
+                          onChange={(e) => setGatewayForm({ ...gatewayForm, companyId: e.target.value })}
+                          placeholder="Informe o Company ID"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Client ID</Label>
+                        <Input
+                          value={gatewayForm.clientId}
+                          onChange={(e) => setGatewayForm({ ...gatewayForm, clientId: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Client Secret</Label>
+                        <Input
+                          value={gatewayForm.clientSecret}
+                          onChange={(e) => setGatewayForm({ ...gatewayForm, clientSecret: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Senha do certificado</Label>
+                        <Input
+                          value={gatewayForm.certificatePassword}
+                          onChange={(e) => setGatewayForm({ ...gatewayForm, certificatePassword: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-2 md:col-span-2">
+                        <Label>Certificado (.pfx/.pem)</Label>
+                        <Textarea
+                          rows={4}
+                          value={gatewayForm.certificate}
+                          onChange={(e) => setGatewayForm({ ...gatewayForm, certificate: e.target.value })}
+                          placeholder="Cole o certificado completo"
+                        />
+                      </div>
+                      <div className="space-y-2 md:col-span-2">
+                        <Label>Data de expiracao</Label>
+                        <Input
+                          value={gatewayForm.certificateExpiresAt}
+                          onChange={(e) => setGatewayForm({ ...gatewayForm, certificateExpiresAt: e.target.value })}
+                          placeholder="dd/mm/aaaa"
+                        />
+                      </div>
+                    </>
+                  )}
+                  {currentStep === 2 && (
+                    <>
+                      <div className="space-y-2 md:col-span-2">
+                        <Label>Workspace ID</Label>
+                        <Input
+                          value={gatewayForm.workspaceId}
+                          onChange={(e) => setGatewayForm({ ...gatewayForm, workspaceId: e.target.value })}
+                          placeholder="Informe o Workspace"
+                        />
+                      </div>
+                    </>
+                  )}
+                  {currentStep === 3 && (
+                    <>
+                      <div className="space-y-2 md:col-span-2">
+                        <Label>Nome da credencial</Label>
+                        <Input
+                          value={gatewayForm.label}
+                          onChange={(e) => setGatewayForm({ ...gatewayForm, label: e.target.value })}
+                          placeholder="Ex: Santander principal"
+                        />
+                      </div>
+                      <div className="flex items-center gap-3 md:col-span-2">
+                        <input
+                          type="checkbox"
+                          checked={gatewayForm.active}
+                          onChange={(e) => setGatewayForm({ ...gatewayForm, active: e.target.checked })}
+                        />
+                        <span className="text-sm text-ink-700">Definir como ativo</span>
+                      </div>
+                    </>
+                  )}
+                </>
+              )}
+
+              {error && <p className="text-sm text-ember-500 md:col-span-2">{error}</p>}
+
+              <div className="flex items-center justify-end gap-2 md:col-span-2">
+                {currentStep > 1 && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => setGatewayStep((prev) => Math.max(1, prev - 1))}
+                  >
+                    Voltar
+                  </Button>
+                )}
+                {!isLastStep ? (
+                  <Button type="button" onClick={() => setGatewayStep((prev) => prev + 1)}>
+                    Avancar
+                  </Button>
+                ) : (
+                  <>
+                    <Button type="button" variant="ghost" onClick={closeGatewayModal}>
+                      Cancelar
+                    </Button>
+                    <Button type="submit" disabled={gatewayBusy}>
+                      {gatewayBusy ? "Salvando..." : "Salvar gateway"}
+                    </Button>
+                  </>
+                )}
+              </div>
+            </form>
+                </>
+              );
+            })()}
+            </div>
+          </div>,
+          document.body
+        )}
+    </>
   );
 }

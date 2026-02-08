@@ -3,6 +3,7 @@ import type {
   InputHTMLAttributes,
   PropsWithChildren,
   SelectHTMLAttributes,
+  TextareaHTMLAttributes,
 } from "react";
 
 export function Card({ children, className = "" }: PropsWithChildren<{ className?: string }>) {
@@ -31,6 +32,17 @@ export function Input(props: InputHTMLAttributes<HTMLInputElement>) {
 export function Select(props: SelectHTMLAttributes<HTMLSelectElement>) {
   return (
     <select
+      {...props}
+      className={`w-full rounded-2xl border border-ink-700/10 bg-white/90 px-4 py-3 text-sm text-ink-900 shadow-sm outline-none transition focus:border-ember-400 focus:ring-2 focus:ring-ember-400/30 ${
+        props.className ?? ""
+      }`}
+    />
+  );
+}
+
+export function Textarea(props: TextareaHTMLAttributes<HTMLTextAreaElement>) {
+  return (
+    <textarea
       {...props}
       className={`w-full rounded-2xl border border-ink-700/10 bg-white/90 px-4 py-3 text-sm text-ink-900 shadow-sm outline-none transition focus:border-ember-400 focus:ring-2 focus:ring-ember-400/30 ${
         props.className ?? ""
