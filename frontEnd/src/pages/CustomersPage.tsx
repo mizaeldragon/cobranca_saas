@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { createPortal } from "react-dom";
+import { Pencil, Trash2 } from "lucide-react";
 import { api } from "../lib/api";
 import { maskCpfCnpj, maskPhone, onlyDigits } from "../lib/masks";
 import { Card, Input, Label, Button, PaginationBar, SectionTitle } from "../components/ui";
@@ -158,7 +159,12 @@ export function CustomersPage() {
         <form className="grid gap-4 md:grid-cols-2" onSubmit={handleCreate}>
           <div className="space-y-2">
             <Label>Nome</Label>
-            <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+            <Input
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              placeholder="Nome completo"
+              required
+            />
             {fieldErrors.name?.[0] && <p className="text-xs text-red-500">{fieldErrors.name[0]}</p>}
           </div>
           <div className="space-y-2">
@@ -166,18 +172,28 @@ export function CustomersPage() {
             <Input
               value={form.document}
               onChange={(e) => setForm({ ...form, document: maskCpfCnpj(e.target.value) })}
+              placeholder="CPF/CNPJ"
               required
             />
             {fieldErrors.document?.[0] && <p className="text-xs text-red-500">{fieldErrors.document[0]}</p>}
           </div>
           <div className="space-y-2">
             <Label>Email</Label>
-            <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+            <Input
+              type="email"
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              placeholder="email@empresa.com"
+            />
             {fieldErrors.email?.[0] && <p className="text-xs text-red-500">{fieldErrors.email[0]}</p>}
           </div>
           <div className="space-y-2">
             <Label>Telefone</Label>
-            <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: maskPhone(e.target.value) })} />
+            <Input
+              value={form.phone}
+              onChange={(e) => setForm({ ...form, phone: maskPhone(e.target.value) })}
+              placeholder="(00) 00000-0000"
+            />
             {fieldErrors.phone?.[0] && <p className="text-xs text-red-500">{fieldErrors.phone[0]}</p>}
           </div>
           <div className="space-y-2 md:col-span-2">
@@ -191,17 +207,29 @@ export function CustomersPage() {
           </div>
           <div className="space-y-2">
             <Label>Cidade</Label>
-            <Input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
+            <Input
+              value={form.city}
+              onChange={(e) => setForm({ ...form, city: e.target.value })}
+              placeholder="Sua cidade"
+            />
             {fieldErrors.city?.[0] && <p className="text-xs text-red-500">{fieldErrors.city[0]}</p>}
           </div>
           <div className="space-y-2">
             <Label>UF</Label>
-            <Input value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value })} />
+            <Input
+              value={form.state}
+              onChange={(e) => setForm({ ...form, state: e.target.value })}
+              placeholder="UF"
+            />
             {fieldErrors.state?.[0] && <p className="text-xs text-red-500">{fieldErrors.state[0]}</p>}
           </div>
           <div className="space-y-2">
             <Label>CEP</Label>
-            <Input value={form.zip} onChange={(e) => setForm({ ...form, zip: e.target.value })} />
+            <Input
+              value={form.zip}
+              onChange={(e) => setForm({ ...form, zip: e.target.value })}
+              placeholder="00000-000"
+            />
             {fieldErrors.zip?.[0] && <p className="text-xs text-red-500">{fieldErrors.zip[0]}</p>}
           </div>
           <div className="flex items-end">
@@ -235,24 +263,28 @@ export function CustomersPage() {
               )}
               {items.map((customer) => (
                 <tr key={customer.id} className="border-t border-ink-700/10">
-                  <td className="py-3">{customer.name}</td>
+                  <td>{customer.name}</td>
                   <td>{customer.document}</td>
                   <td>{customer.email ?? "-"}</td>
                   <td>{customer.phone ?? "-"}</td>
                   <td className="space-x-2">
                     <button
                       type="button"
-                      className="text-sm font-semibold text-ink-800"
+                      className="inline-flex items-center justify-center rounded-full p-2 text-ink-800 transition hover:bg-ink-700/10"
                       onClick={() => startEdit(customer)}
+                      title="Editar"
+                      aria-label="Editar"
                     >
-                      Editar
+                      <Pencil className="h-4 w-4" />
                     </button>
                     <button
                       type="button"
-                      className="text-sm font-semibold text-ember-500"
+                      className="inline-flex items-center justify-center rounded-full p-2 text-ember-500 transition hover:bg-ember-400/10"
                       onClick={() => startDelete(customer)}
+                      title="Excluir"
+                      aria-label="Excluir"
                     >
-                      Excluir
+                      <Trash2 className="h-4 w-4" />
                     </button>
                   </td>
                 </tr>
@@ -288,7 +320,11 @@ export function CustomersPage() {
                 <form className="mt-6 grid gap-4 md:grid-cols-2" onSubmit={handleUpdate}>
               <div className="space-y-2">
                 <Label>Nome</Label>
-                <Input value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} />
+                <Input
+                  value={editForm.name}
+                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                  placeholder="Nome completo"
+                />
                 {editFieldErrors.name?.[0] && <p className="text-xs text-red-500">{editFieldErrors.name[0]}</p>}
               </div>
               <div className="space-y-2">
@@ -296,6 +332,7 @@ export function CustomersPage() {
                 <Input
                   value={editForm.document}
                   onChange={(e) => setEditForm({ ...editForm, document: maskCpfCnpj(e.target.value) })}
+                  placeholder="CPF/CNPJ"
                 />
                 {editFieldErrors.document?.[0] && (
                   <p className="text-xs text-red-500">{editFieldErrors.document[0]}</p>
@@ -307,6 +344,7 @@ export function CustomersPage() {
                   type="email"
                   value={editForm.email}
                   onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                  placeholder="email@empresa.com"
                 />
                 {editFieldErrors.email?.[0] && <p className="text-xs text-red-500">{editFieldErrors.email[0]}</p>}
               </div>
@@ -315,6 +353,7 @@ export function CustomersPage() {
                 <Input
                   value={editForm.phone}
                   onChange={(e) => setEditForm({ ...editForm, phone: maskPhone(e.target.value) })}
+                  placeholder="(00) 00000-0000"
                 />
                 {editFieldErrors.phone?.[0] && <p className="text-xs text-red-500">{editFieldErrors.phone[0]}</p>}
               </div>
@@ -323,6 +362,7 @@ export function CustomersPage() {
                 <Input
                   value={editForm.addressLine1}
                   onChange={(e) => setEditForm({ ...editForm, addressLine1: e.target.value })}
+                  placeholder="Rua e numero"
                 />
                 {editFieldErrors.addressLine1?.[0] && (
                   <p className="text-xs text-red-500">{editFieldErrors.addressLine1[0]}</p>
@@ -330,17 +370,29 @@ export function CustomersPage() {
               </div>
               <div className="space-y-2">
                 <Label>Cidade</Label>
-                <Input value={editForm.city} onChange={(e) => setEditForm({ ...editForm, city: e.target.value })} />
+                <Input
+                  value={editForm.city}
+                  onChange={(e) => setEditForm({ ...editForm, city: e.target.value })}
+                  placeholder="Sua cidade"
+                />
                 {editFieldErrors.city?.[0] && <p className="text-xs text-red-500">{editFieldErrors.city[0]}</p>}
               </div>
               <div className="space-y-2">
                 <Label>UF</Label>
-                <Input value={editForm.state} onChange={(e) => setEditForm({ ...editForm, state: e.target.value })} />
+                <Input
+                  value={editForm.state}
+                  onChange={(e) => setEditForm({ ...editForm, state: e.target.value })}
+                  placeholder="UF"
+                />
                 {editFieldErrors.state?.[0] && <p className="text-xs text-red-500">{editFieldErrors.state[0]}</p>}
               </div>
               <div className="space-y-2">
                 <Label>CEP</Label>
-                <Input value={editForm.zip} onChange={(e) => setEditForm({ ...editForm, zip: e.target.value })} />
+                <Input
+                  value={editForm.zip}
+                  onChange={(e) => setEditForm({ ...editForm, zip: e.target.value })}
+                  placeholder="00000-000"
+                />
                 {editFieldErrors.zip?.[0] && <p className="text-xs text-red-500">{editFieldErrors.zip[0]}</p>}
               </div>
                   <div className="flex items-end gap-3">

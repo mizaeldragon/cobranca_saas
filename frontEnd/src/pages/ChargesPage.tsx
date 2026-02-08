@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { createPortal } from "react-dom";
+import { ExternalLink, Pencil, XCircle } from "lucide-react";
 import { api } from "../lib/api";
 import { formatCents, formatDate } from "../lib/format";
 import { Button, Card, Input, Label, PaginationBar, SectionTitle, Select } from "../components/ui";
@@ -156,13 +157,19 @@ export function ChargesPage() {
               type="number"
               value={form.amountCents}
               onChange={(e) => setForm({ ...form, amountCents: Number(e.target.value) })}
+              placeholder="Ex: 2000"
               min={1}
             />
             {fieldErrors.amountCents?.[0] && <p className="text-xs text-red-500">{fieldErrors.amountCents[0]}</p>}
           </div>
           <div className="space-y-2">
             <Label>Vencimento</Label>
-            <Input type="date" value={form.dueDate} onChange={(e) => setForm({ ...form, dueDate: e.target.value })} />
+            <Input
+              type="date"
+              value={form.dueDate}
+              onChange={(e) => setForm({ ...form, dueDate: e.target.value })}
+              placeholder="yyyy-mm-dd"
+            />
             {fieldErrors.dueDate?.[0] && <p className="text-xs text-red-500">{fieldErrors.dueDate[0]}</p>}
           </div>
           <div className="space-y-2">
@@ -215,7 +222,7 @@ export function ChargesPage() {
               )}
               {charges.map((charge) => (
                 <tr key={charge.id} className="border-t border-ink-700/10">
-                  <td className="py-3">{charge.customer_name ?? "-"}</td>
+                  <td>{charge.customer_name ?? "-"}</td>
                   <td>{formatCents(charge.amount_cents)}</td>
                   <td>{formatDate(charge.due_date)}</td>
                   <td>
@@ -223,8 +230,14 @@ export function ChargesPage() {
                   </td>
                   <td>
                     {charge.invoice_url ? (
-                      <a className="text-sm font-semibold text-tide-600" href={charge.invoice_url} target="_blank">
-                        Abrir
+                      <a
+                        className="inline-flex items-center justify-center rounded-full p-2 text-tide-600 transition hover:bg-ember-400/10"
+                        href={charge.invoice_url}
+                        target="_blank"
+                        title="Abrir"
+                        aria-label="Abrir"
+                      >
+                        <ExternalLink className="h-4 w-4" />
                       </a>
                     ) : (
                       "-"
@@ -233,17 +246,21 @@ export function ChargesPage() {
                   <td className="space-x-2">
                     <button
                       type="button"
-                      className="text-sm font-semibold text-ink-800"
+                      className="inline-flex items-center justify-center rounded-full p-2 text-ink-800 transition hover:bg-ink-700/10"
                       onClick={() => startEdit(charge)}
+                      title="Editar"
+                      aria-label="Editar"
                     >
-                      Editar
+                      <Pencil className="h-4 w-4" />
                     </button>
                     <button
                       type="button"
-                      className="text-sm font-semibold text-ember-500"
+                      className="inline-flex items-center justify-center rounded-full p-2 text-ember-500 transition hover:bg-ember-400/10"
                       onClick={() => startDelete(charge)}
+                      title="Cancelar"
+                      aria-label="Cancelar"
                     >
-                      Cancelar
+                      <XCircle className="h-4 w-4" />
                     </button>
                   </td>
                 </tr>
@@ -285,6 +302,7 @@ export function ChargesPage() {
                       type="number"
                       value={editForm.amountCents}
                       onChange={(e) => setEditForm({ ...editForm, amountCents: Number(e.target.value) })}
+                      placeholder="Ex: 2000"
                       min={1}
                     />
                     {editFieldErrors.amountCents?.[0] && (
@@ -297,6 +315,7 @@ export function ChargesPage() {
                       type="date"
                       value={editForm.dueDate}
                       onChange={(e) => setEditForm({ ...editForm, dueDate: e.target.value })}
+                      placeholder="yyyy-mm-dd"
                     />
                     {editFieldErrors.dueDate?.[0] && (
                       <p className="text-xs text-red-500">{editFieldErrors.dueDate[0]}</p>

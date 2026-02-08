@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { UserCheck, UserX } from "lucide-react";
 import { api } from "../lib/api";
 import { getAuth } from "../lib/auth";
 import { Card, Input, Label, Button, PaginationBar, SectionTitle } from "../components/ui";
@@ -95,12 +96,22 @@ export function UsersPage() {
           <form className="grid gap-4 md:grid-cols-2" onSubmit={handleCreate}>
             <div className="space-y-2">
               <Label>Nome completo</Label>
-              <Input value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} required />
+              <Input
+                value={form.fullName}
+                onChange={(e) => setForm({ ...form, fullName: e.target.value })}
+                placeholder="Nome completo"
+                required
+              />
               {fieldErrors.fullName?.[0] && <p className="text-xs text-red-500">{fieldErrors.fullName[0]}</p>}
             </div>
             <div className="space-y-2">
               <Label>Email</Label>
-              <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+              <Input
+                type="email"
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                placeholder="email@empresa.com"
+              />
               {fieldErrors.email?.[0] && <p className="text-xs text-red-500">{fieldErrors.email[0]}</p>}
             </div>
             <div className="space-y-2">
@@ -119,6 +130,7 @@ export function UsersPage() {
                 type="password"
                 value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
+                placeholder="Minimo 6 caracteres"
                 required
               />
               {fieldErrors.password?.[0] && <p className="text-xs text-red-500">{fieldErrors.password[0]}</p>}
@@ -160,7 +172,7 @@ export function UsersPage() {
               )}
               {items.map((user) => (
                 <tr key={user.id} className="border-t border-ink-700/10">
-                  <td className="py-3">{user.full_name}</td>
+                  <td>{user.full_name}</td>
                   <td>{user.email}</td>
                   <td>{user.phone ? maskPhone(user.phone) : "-"}</td>
                   <td>{user.role}</td>
@@ -169,11 +181,13 @@ export function UsersPage() {
                     {isOwner && user.role !== "OWNER" ? (
                       <button
                         type="button"
-                        className="text-sm font-semibold text-ink-800"
+                        className="inline-flex items-center justify-center rounded-full p-2 text-ink-800 transition hover:bg-ink-700/10"
                         onClick={() => toggleActive(user)}
                         disabled={loading}
+                        title={user.active ? "Desativar" : "Ativar"}
+                        aria-label={user.active ? "Desativar" : "Ativar"}
                       >
-                        {user.active ? "Desativar" : "Ativar"}
+                        {user.active ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
                       </button>
                     ) : (
                       <span className="text-xs text-ink-600">-</span>

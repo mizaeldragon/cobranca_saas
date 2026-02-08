@@ -418,6 +418,7 @@ export function SettingsPage() {
                 <Input
                   value={userForm.fullName}
                   onChange={(e) => setUserForm({ ...userForm, fullName: e.target.value })}
+                  placeholder="Nome completo"
                 />
               </div>
               <div className="space-y-2">
@@ -426,6 +427,7 @@ export function SettingsPage() {
                   type="email"
                   value={userForm.email}
                   onChange={(e) => setUserForm({ ...userForm, email: e.target.value })}
+                  placeholder="email@empresa.com"
                 />
               </div>
               <div className="space-y-2">
@@ -447,6 +449,7 @@ export function SettingsPage() {
                   type="password"
                   value={userForm.currentPassword}
                   onChange={(e) => setUserForm({ ...userForm, currentPassword: e.target.value })}
+                  placeholder="Senha atual"
                 />
               </div>
               <div className="space-y-2">
@@ -464,6 +467,7 @@ export function SettingsPage() {
                   type="password"
                   value={userForm.confirmPassword}
                   onChange={(e) => setUserForm({ ...userForm, confirmPassword: e.target.value })}
+                  placeholder="Confirme a senha"
                 />
               </div>
             </>
@@ -518,12 +522,20 @@ export function SettingsPage() {
                             variant="outline"
                             onClick={() => handleGatewayActivate(gateway.id)}
                             disabled={gatewayBusy}
+                            title="Ativar"
+                            aria-label="Ativar"
                           >
-                            Ativar
+                            <Power className="h-4 w-4" />
                           </Button>
                         )}
-                        <Button type="button" variant="ghost" onClick={() => openGatewayModal(gateway.provider, gateway)}>
-                          Editar
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          onClick={() => openGatewayModal(gateway.provider, gateway)}
+                          title="Editar"
+                          aria-label="Editar"
+                        >
+                          <Pencil className="h-4 w-4" />
                         </Button>
                         <Button
                           type="button"
@@ -531,8 +543,10 @@ export function SettingsPage() {
                           className="text-ember-500"
                           onClick={() => handleGatewayRemove(gateway.id)}
                           disabled={gatewayBusy}
+                          title="Remover"
+                          aria-label="Remover"
                         >
-                          Remover
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     </div>
@@ -797,6 +811,7 @@ export function SettingsPage() {
                         <Input
                           value={gatewayForm.clientId}
                           onChange={(e) => setGatewayForm({ ...gatewayForm, clientId: e.target.value })}
+                          placeholder="Informe o Client ID"
                         />
                       </div>
                       <div className="space-y-2 md:col-span-2">
@@ -822,6 +837,7 @@ export function SettingsPage() {
                         <Input
                           value={gatewayForm.certificatePassword}
                           onChange={(e) => setGatewayForm({ ...gatewayForm, certificatePassword: e.target.value })}
+                          placeholder="Informe a senha"
                         />
                       </div>
                     </>
@@ -866,6 +882,7 @@ export function SettingsPage() {
                         <Input
                           value={gatewayForm.clientId}
                           onChange={(e) => setGatewayForm({ ...gatewayForm, clientId: e.target.value })}
+                          placeholder="Informe o Client ID"
                         />
                       </div>
                       <div className="space-y-2">
@@ -873,6 +890,7 @@ export function SettingsPage() {
                         <Input
                           value={gatewayForm.clientSecret}
                           onChange={(e) => setGatewayForm({ ...gatewayForm, clientSecret: e.target.value })}
+                          placeholder="Informe o Client Secret"
                         />
                       </div>
                       <div className="space-y-2">
@@ -880,6 +898,7 @@ export function SettingsPage() {
                         <Input
                           value={gatewayForm.certificatePassword}
                           onChange={(e) => setGatewayForm({ ...gatewayForm, certificatePassword: e.target.value })}
+                          placeholder="Informe a senha"
                         />
                       </div>
                       <div className="space-y-2 md:col-span-2">

@@ -1,5 +1,6 @@
 ﻿import { useEffect, useState, type FormEvent } from "react";
 import { createPortal } from "react-dom";
+import { Pencil, Trash2 } from "lucide-react";
 import { api } from "../lib/api";
 import { formatCents, formatDate } from "../lib/format";
 import { Button, Card, Input, Label, PaginationBar, SectionTitle, Select } from "../components/ui";
@@ -164,6 +165,7 @@ export function SubscriptionsPage() {
               type="number"
               value={form.amountCents}
               onChange={(e) => setForm({ ...form, amountCents: Number(e.target.value) })}
+              placeholder="Ex: 5000"
               min={1}
             />
             {fieldErrors.amountCents?.[0] && <p className="text-xs text-red-500">{fieldErrors.amountCents[0]}</p>}
@@ -192,6 +194,7 @@ export function SubscriptionsPage() {
               type="date"
               value={form.nextDueDate}
               onChange={(e) => setForm({ ...form, nextDueDate: e.target.value })}
+              placeholder="yyyy-mm-dd"
               required
             />
             {fieldErrors.nextDueDate?.[0] && <p className="text-xs text-red-500">{fieldErrors.nextDueDate[0]}</p>}
@@ -228,7 +231,7 @@ export function SubscriptionsPage() {
               )}
               {items.map((sub) => (
                 <tr key={sub.id} className="border-t border-ink-700/10">
-                  <td className="py-3">{sub.customer_name ?? "-"}</td>
+                  <td>{sub.customer_name ?? "-"}</td>
                   <td>{formatCents(sub.amount_cents)}</td>
                   <td>{sub.interval}</td>
                   <td>{formatDate(sub.next_due_date)}</td>
@@ -240,17 +243,21 @@ export function SubscriptionsPage() {
                   <td className="space-x-2">
                     <button
                       type="button"
-                      className="text-sm font-semibold text-ink-800"
+                      className="inline-flex items-center justify-center rounded-full p-2 text-ink-800 transition hover:bg-ink-700/10"
                       onClick={() => startEdit(sub)}
+                      title="Editar"
+                      aria-label="Editar"
                     >
-                      Editar
+                      <Pencil className="h-4 w-4" />
                     </button>
                     <button
                       type="button"
-                      className="text-sm font-semibold text-ember-500"
+                      className="inline-flex items-center justify-center rounded-full p-2 text-ember-500 transition hover:bg-ember-400/10"
                       onClick={() => startDelete(sub)}
+                      title="Excluir"
+                      aria-label="Excluir"
                     >
-                      Excluir
+                      <Trash2 className="h-4 w-4" />
                     </button>
                   </td>
                 </tr>
@@ -292,6 +299,7 @@ export function SubscriptionsPage() {
                       type="number"
                       value={editForm.amountCents}
                       onChange={(e) => setEditForm({ ...editForm, amountCents: Number(e.target.value) })}
+                      placeholder="Ex: 5000"
                       min={1}
                     />
                     {editFieldErrors.amountCents?.[0] && (
@@ -332,6 +340,7 @@ export function SubscriptionsPage() {
                       type="date"
                       value={editForm.nextDueDate}
                       onChange={(e) => setEditForm({ ...editForm, nextDueDate: e.target.value })}
+                      placeholder="yyyy-mm-dd"
                     />
                     {editFieldErrors.nextDueDate?.[0] && (
                       <p className="text-xs text-red-500">{editFieldErrors.nextDueDate[0]}</p>
@@ -349,7 +358,7 @@ export function SubscriptionsPage() {
                     {editFieldErrors.active?.[0] && <p className="text-xs text-red-500">{editFieldErrors.active[0]}</p>}
                   </div>
                   <div className="flex items-end gap-3">
-                    <Button type="submit" disabled={loading}>
+                    <Button type="submit" disabled={loading} className="min-w-[180px] whitespace-nowrap">
                       {loading ? "Salvando..." : "Salvar alteracoes"}
                     </Button>
                     <Button type="button" variant="ghost" onClick={resetEdit}>

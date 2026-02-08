@@ -4,6 +4,7 @@ import { getProvider } from "../providers/providers.factory";
 import type { ProviderName } from "../providers/provider.types";
 import { sendChargeWhatsApp, type WhatsAppConfig } from "../../utils/whatsapp";
 import { sendChargeEmail, type EmailConfig } from "../../utils/email";
+import { isValidCpfCnpj, onlyDigits } from "../../utils/document";
 
 type CompanyRow = {
   bank_provider: ProviderName;
@@ -242,6 +243,9 @@ export const ChargesService = {
       [companyId, data.customerId]
     ))[0];
     if (!customer) throw Object.assign(new Error("Customer not found"), { status: 404 });
+    if (!isValidCpfCnpj(onlyDigits(customer.document ?? ""))) {
+      throw Object.assign(new Error("CPF/CNPJ invalido"), { status: 422 });
+    }
 
     const provider = getProvider(company.bank_provider);
 

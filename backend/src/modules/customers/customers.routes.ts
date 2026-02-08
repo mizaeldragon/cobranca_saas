@@ -6,6 +6,7 @@ import { validateBody } from "../../middleware/validate";
 import { asyncHandler } from "../../middleware/async";
 import { z } from "zod";
 import { CustomersController } from "./customers.controller";
+import { isValidCpfCnpj, onlyDigits } from "../../utils/document";
 
 export const customersRoutes = Router();
 
@@ -20,7 +21,10 @@ customersRoutes.post(
   validateBody(
     z.object({
       name: z.string().min(2),
-      document: z.string().min(11),
+      document: z
+        .string()
+        .min(11)
+        .refine((value) => isValidCpfCnpj(onlyDigits(value)), "CPF/CNPJ invalido"),
       email: z.string().email().optional(),
       phone: z.string().optional(),
       addressLine1: z.string().optional(),
@@ -39,7 +43,11 @@ customersRoutes.patch(
   validateBody(
     z.object({
       name: z.string().min(2).optional(),
-      document: z.string().min(11).optional(),
+      document: z
+        .string()
+        .min(11)
+        .optional()
+        .refine((value) => (value ? isValidCpfCnpj(onlyDigits(value)) : true), "CPF/CNPJ invalido"),
       email: z.string().email().optional(),
       phone: z.string().optional(),
       addressLine1: z.string().optional(),
